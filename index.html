@@ -1155,9 +1155,6 @@
             
             filterColumns.forEach(col => {
                 const wrapper = document.createElement('div'); wrapper.className = "mb-1";
-                const label = document.createElement('label');
-                label.className = "block text-[9px] font-medium text-slate-400 dark:text-slate-500 mb-0.5 uppercase filter-label tracking-wider";
-                label.innerText = col === 'OFFICE' ? 'BRANCH' : col;
                 
                 const select = document.createElement('select');
                 select.className = "w-full bg-slate-800 dark:bg-slate-700 border border-slate-700 dark:border-slate-600 text-slate-200 text-xs rounded-lg block p-1.5 focus:border-indigo-500 focus:outline-none";
@@ -1180,7 +1177,7 @@
                     }, 50);
                 });
                 
-                wrapper.appendChild(label); wrapper.appendChild(select); container.appendChild(wrapper);
+                wrapper.appendChild(select); container.appendChild(wrapper);
             });
             
             populateFilterOptions('CO-BRANCH', rawData);
