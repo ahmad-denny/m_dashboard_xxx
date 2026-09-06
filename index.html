@@ -274,11 +274,11 @@
                     <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
                         <option value="">Loading...</option>
                     </select>
-                    <button onclick="resetFilters()" class="px-2 py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center">
-                        <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+                    <button onclick="resetFilters()" title="Reset" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-rotate-right sm:mr-1"></i> <span class="hidden sm:inline">Reset</span>
                     </button>
-                    <button onclick="openExportModal()" class="px-2 py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center">
-                        <i class="fa-solid fa-table mr-1"></i> Compare
+                    <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                     </button>
                 </div>
             </div>
