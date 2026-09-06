@@ -95,8 +95,7 @@
             .collapsed select { display: none; }
             .collapsed .nav-header { justify-content: center; }
             .collapsed .logo-text { display: none; }
-        }
-        @media (max-width: 768px) {
+        
             .sticky-column {
                 position: sticky; left: 0; z-index: 10;
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
@@ -105,17 +104,17 @@
             #main-content { overflow-y: auto !important; }
             .mobile-compact-p { padding: 0.5rem !important; }
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
-        }
-
-        /* Sembunyikan label "Reset" dan "Compare" pada layar mobile */
-        @media (max-width: 768px) {
+        
           /* Target tombol Reset - sesuaikan selector dengan class/ID yang sesuai */
           button[onclick*="reset"],
           .btn-reset,
           #resetBtn {
             font-size: 0; /* Sembunyikan teks */
           }
-          
+
+          .btn-label {
+               display: none !important;
+          }
           /* Pastikan icon tetap terlihat */
           button[onclick*="reset"] i,
           .btn-reset i,
@@ -322,18 +321,17 @@
             <div class="flex gap-1 border-b border-slate-100 dark:border-slate-700 -mx-3 px-3 overflow-x-auto whitespace-nowrap scrollbar-none mt-1" id="csv-tabs-container"></div>
         </header>
         
-        <!-- Tombol Reset -->
-        <button class="btn">
-          <i class="icon-reset"></i>
-          <span class="hidden md:inline">Reset</span>
+        <!-- Tambahkan class pada tombol -->
+        <button onclick="..." class="btn-reset">
+          <i class="icon"></i>
+          <span class="btn-label">Reset</span>
         </button>
         
-        <!-- Tombol Compare -->
-        <button class="btn">
-          <i class="icon-compare"></i>
-          <span class="hidden md:inline">Compare</span>
+        <button onclick="..." class="btn-compare">
+          <i class="icon"></i>
+          <span class="btn-label">Compare</span>
         </button>
-
+        
         <!-- KPI CONTAINER -->
         <div class="sticky top-[75px] md:top-[85px] z-40 bg-[#f8fafc] dark:bg-dark-bg px-3 md:px-6 pt-2 pb-2 border-b border-slate-200/60 dark:border-dark-border shadow-sm transition-colors duration-300" id="kpi-container">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
