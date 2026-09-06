@@ -107,31 +107,6 @@
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
         }
         
-        /* Sembunyikan label pada layar mobile (lebar <= 768px) */
-        @media (max-width: 768px) {
-            /* Sembunyikan teks "Reset" */
-            .reset-btn span,
-            button[onclick*="reset"] span,
-            .btn-reset span {
-                display: none;
-            }
-            
-            /* Sembunyikan teks "Compare" */
-            .compare-btn span,
-            button[onclick*="compare"] span,
-            .btn-compare span {
-                display: none;
-            }
-            
-            /* Pastikan icon tetap terlihat */
-            .reset-btn i,
-            .compare-btn i,
-            button[onclick*="reset"] i,
-            button[onclick*="compare"] i {
-                margin: 0;
-            }
-        }        
-        
         .mom-badge {
             display: inline-flex;
             align-items: center;
