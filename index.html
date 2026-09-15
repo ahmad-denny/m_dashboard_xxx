@@ -642,7 +642,15 @@
                 const posEl = document.getElementById('sidebar-user-pos');
                 const avatarEl = document.getElementById('sidebar-user-avatar');
                 const displayName = user.nama || 'User';
-                const displayPos = user.posisi || '-';
+                
+                // --- BAGIAN YANG DIUBAH ---
+                const userPos = user.posisi || '-';
+                // Mengambil lokasi/region/cabang dari data user
+                const userLoc = user.lokasi || user.region || user.cabang || '';
+                
+                // Gabungkan Posisi & Lokasi jika data lokasi ada
+                const displayPos = userLoc ? `${userPos} - ${userLoc}` : userPos;
+                // ---------------------------
 
                 if (nameEl) nameEl.textContent = displayName;
                 if (posEl) posEl.textContent = displayPos;
@@ -654,7 +662,7 @@
             buildCSVTabs();
             loadSelectedCSV(currentActiveFileIndex);
         });
-
+        
         // --- STATE MANAGEMENT ---
         window.customLegendStates = window.customLegendStates || {};
         let npfMode = { co: 'worst', branch: 'worst' };
