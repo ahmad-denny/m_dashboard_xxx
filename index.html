@@ -224,68 +224,69 @@
     <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] hidden md:hidden transition-opacity duration-300"></div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-[60] sidebar-transition h-[100dvh]">
-        <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-500 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-600 z-30 focus:outline-none">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 flex flex-col shadow-2xl md:shadow-sm border-r border-slate-100 dark:border-dark-border z-[60] sidebar-transition h-[100dvh] transition-colors duration-300">
+        <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-500 z-30 focus:outline-none">
             <i class="fa-solid fa-chevron-left text-xs transition-transform" id="toggle-icon"></i>
         </button>
-        <button id="sidebar-close-mobile" class="md:hidden absolute right-4 top-5 text-slate-400 hover:text-white text-lg p-2 focus:outline-none z-50">
+        <button id="sidebar-close-mobile" class="md:hidden absolute right-4 top-5 text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg p-2 focus:outline-none z-50">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="p-4 flex items-center gap-3 border-b border-slate-700 nav-header">
+        <div class="p-4 flex items-center gap-3 border-b border-slate-100 dark:border-dark-border nav-header">
             <div style="padding: 0px; text-align: center;">
-                <img src="img/BMI.png" alt="Logo" style="filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen;" width="40" height="30" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-building-columns text-2xl text-indigo-400\'></i>'">
+                <img src="img/BMI.png" alt="Logo" width="40" height="30" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-building-columns text-2xl text-indigo-600 dark:text-indigo-400\'></i>'">
             </div>
-            <h1 class="font-bold text-sm tracking-wide logo-text leading-tight">Performance<br><span class="text-indigo-400">Region Sumatera</span></h1>
+            <h1 class="font-bold text-sm tracking-wide logo-text leading-tight text-slate-800 dark:text-white">Performance<br><span class="text-indigo-600 dark:text-indigo-400">Region Sumatera</span></h1>
         </div>
-        <nav class="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar pb-20">
-            <div id="filter-container" class="space-y-3"></div>
+        <nav class="flex-1 p-3 space-y-5 overflow-y-auto custom-scrollbar pb-6">
+            <div>
+                <p class="filter-label text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 mb-2">Filters</p>
+                <div id="filter-container" class="space-y-2"></div>
+            </div>
+            <div>
+                <p class="filter-label text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 mb-2">Data Menu</p>
+                <div id="csv-tabs-container" class="space-y-1"></div>
+            </div>
         </nav>
-        <div class="p-3 border-t border-slate-700 bg-slate-800 user-info absolute bottom-0 w-full">
-            <div class="flex items-center gap-3">
-                <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=U&background=4f46e5&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-600 shrink-0">
-                <div class="min-w-0">
-                    <p class="text-xs font-medium truncate" id="sidebar-user-name">Logged in as RBPM - Region Sumatera</p>
-                    <p class="text-[10px] text-slate-400 truncate" id="sidebar-user-pos">Typing, Create, Update, Repeat</p>
-                </div>
-            </div>
-        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-full w-full relative overflow-y-auto bg-[#f8fafc] dark:bg-dark-bg transition-colors duration-300" id="main-content">
-        <header class="bg-white dark:bg-dark-card border-b border-slate-200 dark:border-dark-border flex flex-col justify-between px-3 md:px-6 shrink-0 pt-2 pb-2 sticky top-0 z-30 shadow-sm w-full transition-colors duration-300" id="main-header">
-            <div class="flex items-center justify-between w-full">
-                <div class="flex items-center gap-2">
-                    <button id="mobile-menu-btn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-1 -ml-2 focus:outline-none flex items-center justify-center">
-                        <i class="fa-solid fa-bars text-lg"></i>
-                    </button>
+        <header class="bg-white dark:bg-dark-card border-b border-slate-200 dark:border-dark-border flex items-center justify-between px-3 md:px-6 shrink-0 py-2.5 sticky top-0 z-30 shadow-sm w-full transition-colors duration-300 gap-2" id="main-header">
+            <div class="flex items-center gap-2 min-w-0">
+                <button id="mobile-menu-btn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-1 -ml-2 focus:outline-none flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <div class="min-w-0">
                     <h2 class="text-sm md:text-lg font-semibold text-slate-800 dark:text-white truncate" id="dashboard-main-title">Performance Analytics</h2>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[9px] text-slate-500 dark:text-slate-400">As of</p>
-                        <p class="text-xs font-medium text-indigo-600 dark:text-indigo-400" id="header-as-of">-</p>
-                    </div>
-                    <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-yellow-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full transition-colors focus:outline-none" title="Toggle Theme">
-                        <i class="fa-solid fa-moon dark:hidden"></i>
-                        <i class="fa-solid fa-sun hidden dark:block"></i>
-                    </button>
-                    <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
-                        <option value="">Loading...</option>
-                    </select>
-                    <button onclick="resetFilters()" title="Reset" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center justify-center">
-                        <i class="fa-solid fa-rotate-right sm:mr-1"></i> <span class="hidden sm:inline">Reset</span>
-                    </button>
-                    <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
-                        <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
-                    </button>
+                    <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 truncate">As of <span class="font-medium text-indigo-600 dark:text-indigo-400" id="header-as-of">-</span></p>
                 </div>
             </div>
-            <div class="flex gap-1 border-b border-slate-100 dark:border-slate-700 -mx-3 px-3 overflow-x-auto whitespace-nowrap scrollbar-none mt-1" id="csv-tabs-container"></div>
+            <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+                <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-yellow-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full transition-colors focus:outline-none" title="Toggle Theme">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block"></i>
+                </button>
+                <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
+                    <option value="">Loading...</option>
+                </select>
+                <button onclick="resetFilters()" title="Reset" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center justify-center">
+                    <i class="fa-solid fa-rotate-right sm:mr-1"></i> <span class="hidden sm:inline">Reset</span>
+                </button>
+                <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
+                    <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
+                </button>
+                <div class="hidden sm:flex items-center gap-2 pl-2 ml-0.5 border-l border-slate-200 dark:border-dark-border">
+                    <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=U&background=4f46e5&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 shrink-0">
+                    <div class="min-w-0 hidden md:block">
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[140px]" id="sidebar-user-name">Logged in as RBPM - Region Sumatera</p>
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[140px]" id="sidebar-user-pos">Typing, Create, Update, Repeat</p>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <!-- KPI CONTAINER -->
-        <div class="sticky top-[75px] md:top-[85px] z-40 bg-[#f8fafc] dark:bg-dark-bg px-3 md:px-6 pt-2 pb-2 border-b border-slate-200/60 dark:border-dark-border shadow-sm transition-colors duration-300" id="kpi-container">
+        <div class="sticky top-[53px] md:top-[61px] z-40 bg-[#f8fafc] dark:bg-dark-bg px-3 md:px-6 pt-2 pb-2 border-b border-slate-200/60 dark:border-dark-border shadow-sm transition-colors duration-300" id="kpi-container">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
                 <!-- Card 1 -->
                 <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-indigo-500 min-w-0 transition-colors duration-300">
@@ -847,24 +848,31 @@
             return colors;
         }
 
+        const csvTabActiveClass = 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold';
+        const csvTabInactiveClass = 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-700 dark:hover:text-slate-200';
+
         function buildCSVTabs() {
             const container = document.getElementById('csv-tabs-container');
             container.innerHTML = '';
             csvFilesConfig.forEach((cfg, idx) => {
                 const btn = document.createElement('button');
                 btn.id = `tab-csv-${idx}`;
-                const activeClass = 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20';
-                const inactiveClass = 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600';
-                
-                btn.className = `py-2 px-3 font-medium text-xs flex items-center gap-1.5 border-b-2 transition-all focus:outline-none shrink-0 ${idx === currentActiveFileIndex ? activeClass : inactiveClass}`;
-                btn.innerHTML = `<i class="fa-solid ${cfg.icon}"></i> <span class="hidden sm:inline">${cfg.name}</span>`;
+                btn.className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${idx === currentActiveFileIndex ? csvTabActiveClass : csvTabInactiveClass}`;
+                btn.innerHTML = `<i class="fa-solid ${cfg.icon} w-4 text-center shrink-0"></i> <span class="nav-text truncate">${cfg.name}</span>`;
                 btn.onclick = () => switchCSVTab(idx);
                 container.appendChild(btn);
             });
         }
 
         function switchCSVTab(index) {
-            if (index === currentActiveFileIndex) return;
+            if (index === currentActiveFileIndex) {
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar').classList.add('-translate-x-full');
+                    document.getElementById('sidebar-backdrop').classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+                return;
+            }
             isComparisonMode = false; 
             comparisonData = [];
             restoreTableOriginalPosition();
@@ -878,15 +886,18 @@
             const selector = document.getElementById('month-selector');
             const selectedMonth = selector ? selector.value : null;
             
-            const activeClass = 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20';
-            const inactiveClass = 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600';
-            
-            document.getElementById(`tab-csv-${currentActiveFileIndex}`).className = `py-2 px-3 font-medium text-xs flex items-center gap-1.5 border-b-2 transition-all focus:outline-none shrink-0 ${inactiveClass}`;
-            document.getElementById(`tab-csv-${index}`).className = `py-2 px-3 font-medium text-xs flex items-center gap-1.5 border-b-2 transition-all focus:outline-none shrink-0 ${activeClass}`;
+            document.getElementById(`tab-csv-${currentActiveFileIndex}`).className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${csvTabInactiveClass}`;
+            document.getElementById(`tab-csv-${index}`).className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${csvTabActiveClass}`;
             
             currentActiveFileIndex = index;
             document.getElementById('loading').style.display = 'flex';
             loadSelectedCSV(index, currentFilters, selectedMonth);
+            
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('sidebar-backdrop').classList.add('hidden');
+                document.body.style.overflow = '';
+            }
         }
 
         function loadSelectedCSV(index, preservedFilters = {}, preservedMonth = null) {
@@ -1156,7 +1167,7 @@
                 const wrapper = document.createElement('div'); wrapper.className = "mb-1";
                 
                 const select = document.createElement('select');
-                select.className = "w-full bg-slate-800 dark:bg-slate-700 border border-slate-700 dark:border-slate-600 text-slate-200 text-xs rounded-lg block p-1.5 focus:border-indigo-500 focus:outline-none";
+                select.className = "w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs rounded-lg block p-1.5 focus:border-indigo-500 focus:outline-none";
                 select.id = `filter-${col}`;
                 
                 const defaultOpt = document.createElement('option'); defaultOpt.value = "ALL";
