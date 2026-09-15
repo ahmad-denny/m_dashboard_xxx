@@ -238,6 +238,18 @@
             <h1 class="font-bold text-sm tracking-wide logo-text leading-tight text-slate-800 dark:text-white">Performance<br><span class="text-indigo-600 dark:text-indigo-400">Region Sumatera</span></h1>
         </div>
         <nav class="flex-1 p-3 space-y-5 overflow-y-auto custom-scrollbar pb-6">
+            <div class="md:hidden mb-2">
+                <div class="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                    <p class="text-xs text-slate-400 uppercase mb-2">Logged in as</p>
+                    <div class="flex items-center gap-3">
+                        <div id="userAvatarSidebar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">U</div>
+                        <div class="leading-tight min-w-0">
+                            <p id="userNameSidebar" class="text-sm font-semibold text-white truncate">-</p>
+                            <p id="userPosSidebar" class="text-xs text-slate-400 truncate">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div>
                 <!--
                 <p class="filter-label text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1 mb-2">Data Menu</p>
@@ -638,30 +650,40 @@
         document.addEventListener('authReady', (e) => {
             const user = e.detail;
             if (user) {
+                // Elemen Desktop Header
                 const nameEl = document.getElementById('sidebar-user-name');
                 const posEl = document.getElementById('sidebar-user-pos');
                 const avatarEl = document.getElementById('sidebar-user-avatar');
+        
+                // Elemen Mobile Sidebar Card
+                const mobileNameEl = document.getElementById('userNameSidebar');
+                const mobilePosEl = document.getElementById('userPosSidebar');
+                const mobileAvatarEl = document.getElementById('userAvatarSidebar');
+        
                 const displayName = user.nama || 'User';
-                
-                // --- BAGIAN YANG DIUBAH ---
                 const userPos = user.posisi || '-';
-                // Mengambil lokasi/region/cabang dari data user
                 const userLoc = user.lokasi || user.region || user.cabang || '';
-                
-                // Gabungkan Posisi & Lokasi jika data lokasi ada
                 const displayPos = userLoc ? `${userPos} - ${userLoc}` : userPos;
-                // ---------------------------
-
+        
+                // Populate Data Desktop
                 if (nameEl) nameEl.textContent = displayName;
                 if (posEl) posEl.textContent = displayPos;
                 if (avatarEl) {
                     avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=4f46e5&color=fff`;
                 }
+        
+                // Populate Data Mobile Card
+                if (mobileNameEl) mobileNameEl.textContent = displayName;
+                if (mobilePosEl) mobilePosEl.textContent = displayPos;
+                if (mobileAvatarEl) {
+                    // Ambil inisial huruf pertama dari nama user
+                    mobileAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+                }
             }
-
+        
             buildCSVTabs();
             loadSelectedCSV(currentActiveFileIndex);
-        });
+        });        
         
         // --- STATE MANAGEMENT ---
         window.customLegendStates = window.customLegendStates || {};
