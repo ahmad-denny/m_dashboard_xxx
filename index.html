@@ -240,16 +240,19 @@
         <nav class="flex-1 p-3 space-y-5 overflow-y-auto custom-scrollbar pb-6">
             <!-- User Info Card (Khusus Mobile) -->
             <div class="md:hidden mb-4">
-                <div class="bg-white border border-indigo-100 rounded-2xl p-3.5 shadow-sm">
-                    <p class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-2">Logged in as</p>
+                <!-- Background, Border, dan Shadow yang responsif tema -->
+                <div class="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700/60 rounded-2xl p-3.5 shadow-sm">
+                    <p class="text-[10px] font-semibold tracking-wider text-slate-400 dark:text-slate-400 uppercase mb-2">Logged in as</p>
                     <div class="flex items-center gap-3">
-                        <!-- Avatar Bulat Biru (Sesuai Gambar) -->
+                        <!-- Avatar Bulat Biru -->
                         <div id="userAvatarSidebar" class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
                             A
                         </div>
                         <div class="leading-tight min-w-0">
-                            <p id="userNameSidebar" class="text-xs font-bold text-slate-800 truncate">AHMAD DENNY</p>
-                            <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 truncate mt-0.5">RBPM - REGION</p>
+                            <!-- Teks Nama: Hitam di Light Mode, Putih di Dark Mode -->
+                            <p id="userNameSidebar" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">AHMAD DENNY</p>
+                            <!-- Teks Posisi: Abu-abu Soft di kedua mode -->
+                            <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 dark:text-slate-400 truncate mt-0.5">RBPM - REGION</p>
                         </div>
                     </div>
                 </div>
