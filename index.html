@@ -143,6 +143,75 @@
         body.dark canvas + div ul li span {
             color: #f1f5f9 !important;
         }
+
+        /* --- HEADER USER INFO: STYLE REFERENSI --- */
+        .user-info-reference {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-width: 0;
+            padding-left: 12px;
+            margin-left: 2px;
+            border-left: 1px solid #e5e7eb;
+        }
+
+        .user-avatar-reference {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 9999px;
+            background: #6d28d9;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: .1px;
+        }
+
+        .user-meta-reference {
+            min-width: 0;
+            line-height: 1.05;
+            text-align: left;
+        }
+
+        .user-name-reference {
+            margin: 0;
+            color: #111827;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .user-detail-reference {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .user-role-reference {
+            color: #64748b;
+        }
+
+        .user-separator-reference {
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        .user-location-reference {
+            color: #64748b;
+        }
+        
     </style>
 </head>
 <body class="light h-screen h-[100dvh] flex overflow-hidden relative" oncontextmenu="return false;" onkeydown="return blockShortcuts(event);" ondragstart="return false;">
@@ -299,13 +368,15 @@
                 <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                 </button>
-                <div class="hidden sm:flex items-center gap-2.5 p-1.5 pr-4 rounded-full bg-transparent dark:bg-slate-800">
-                    <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=AD&background=6366f1&color=fff" alt="User" class="w-9 h-9 rounded-full shrink-0">
-                    <div class="min-w-0 hidden md:block">
-                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide uppercase truncate" id="sidebar-user-name">-</p>
-                        <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-                            <span id="sidebar-user-position">|</span>
-                            <span id="sidebar-user-location">-</span>
+                <!-- Desktop User Info - Style Referensi -->
+                <div id="userInfoChip" class="hidden md:flex user-info-reference">
+                    <div id="userAvatarCircle" class="user-avatar-reference">U</div>
+                    <div class="user-meta-reference">
+                        <p id="userNameChip" class="user-name-reference">-</p>
+                        <div class="user-detail-reference">
+                            <span id="userPosChip" class="user-role-reference">-</span>
+                            <span class="user-separator-reference">|</span>
+                            <span id="userLocChip" class="user-location-reference">-</span>
                         </div>
                     </div>
                 </div>
