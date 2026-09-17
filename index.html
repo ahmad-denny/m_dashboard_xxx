@@ -15,89 +15,6 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <style>
-
-        :root {
-            --primary: #4b2e83;
-            --bg: #f4f6f9;
-            --card-bg: #ffffff;
-            --text: #333333;
-            --text-muted: #6c757d;
-            --border: #e9ecef;
-            --shadow: 0 2px 8px rgba(0,0,0,0.06);
-            --radius: 8px;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --highlight-bg: rgba(75, 46, 131, 0.08);
-            --card-title-light: #d4c4f0; 
-            --top5-header-color: var(--primary);        
-        
-            /* User Info Chip Styling seperti Gambar */
-        #userInfoChip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background-color: transparent; /* Background kapsul terang */
-            padding: 4px 12px 4px 4px;
-            border-radius: 999px; /* Bentuk rounded/kapsul penuh */
-            margin-left: 6px;
-        }
-        
-        [data-theme="dark"] #userInfoChip {
-            background-color: var(--border);
-        }
-        
-        /* Lingkaran Avatar Inisial */
-        #userAvatarCircle {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #6a0ded; /* Ungu sesuai gambar */
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-        
-        /* Detail Teks User */
-        .user-info-text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            line-height: 1.1;
-            text-align: left;
-        }
-        
-        #userNameChip {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #1f2937;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }        
-
-        #userPosChip {
-            font-weight: 600;
-            color: #8b95a5;
-            text-transform: uppercase;
-        }
-        
-        .user-info-dot {
-            color: #8b95a5;
-            font-size: 0.6rem;
-        }
-        
-        /* Badge REGION Green */
-        .user-region-badge {
-            font-weight: 600;
-            color: #8b95a5;
-            text-transform: uppercase;
-        }            
-    </style>
     <!-- Tailwind Config -->
     <script>
         tailwind.config = {
@@ -383,19 +300,6 @@
                 <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                 </button>
-                    <div id="userInfoChip">
-                        <div id="userAvatarCircle">-</div>
-                        <div class="user-info-text">
-                            <div id="userNameChip">-</div>
-                            <div class="user-sub-info">
-                                <span id="userPosChip">-</span>
-                                <span class="user-info-dot">|</span>
-                                <span class="user-region-badge" id="userRegionChip">-</span>
-                            </div>
-                        </div>
-                    </div>                    
-                
-                <!--
                 <div class="hidden sm:flex items-center gap-2.5 p-1.5 pr-4 rounded-full bg-transparent dark:bg-slate-800">
                     <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=AD&background=6366f1&color=fff" alt="User" class="w-9 h-9 rounded-full shrink-0">
                     <div class="min-w-0 hidden md:block">
@@ -406,7 +310,6 @@
                         </div>
                     </div>
                 </div>
-                -->
             </div>
         </header>
 
@@ -777,7 +680,7 @@
         
                 // Populate Desktop
                 if (nameEl) nameEl.textContent = displayName;
-                if (posTextEl) posTextEl.textContent = `${userPos} |`;
+                if (posTextEl) posTextEl.textContent = `${userPos} •`;
                 if (locBadgeEl) locBadgeEl.textContent = userLoc ? userLoc.toUpperCase() : '-';
                 if (avatarEl) {
                     avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=4f46e5&color=fff`;
