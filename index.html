@@ -2724,6 +2724,13 @@
                     btn.disabled = originalDisabled;
                 });
         }
+        // 1. Hapus nilai penyimpanan tema lama di browser
+        localStorage.removeItem('theme');
+        localStorage.removeItem('color-theme');
+        
+        // 2. Paksa elemen HTML menggunakan class/attribute light mode
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
     </script>
 
     <!-- EXPORT MODAL -->
