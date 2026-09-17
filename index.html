@@ -657,7 +657,6 @@
             initMobileSidebar();
         });
 
-        // Data dashboard baru dimuat setelah auth gate (index2.html) memvalidasi sesi
         document.addEventListener('authReady', (e) => {
             const user = e.detail;
             if (user) {
@@ -686,14 +685,23 @@
                 // Populate Mobile Card
                 if (mobileNameEl) mobileNameEl.textContent = displayName;
                 if (mobilePosEl) mobilePosEl.textContent = displayPos;
+                
+                // MODIFIKASI: Avatar menampilkan 2 huruf pertama nama
                 if (mobileAvatarEl) {
-                    mobileAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+                    const nameParts = displayName.split(' ');
+                    let initials = '';
+                    if (nameParts.length >= 2) {
+                        initials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                    } else {
+                        initials = displayName.substring(0, 2).toUpperCase();
+                    }
+                    mobileAvatarEl.textContent = initials;
                 }
             }
         
             buildCSVTabs();
             loadSelectedCSV(currentActiveFileIndex);
-        });      
+        });
         
         // --- STATE MANAGEMENT ---
         window.customLegendStates = window.customLegendStates || {};
