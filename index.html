@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -143,75 +144,6 @@
         body.dark canvas + div ul li span {
             color: #f1f5f9 !important;
         }
-
-        /* --- HEADER USER INFO: STYLE REFERENSI --- */
-        .user-info-reference {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            min-width: 0;
-            padding-left: 12px;
-            margin-left: 2px;
-            border-left: 1px solid #e5e7eb;
-        }
-
-        .user-avatar-reference {
-            width: 38px;
-            height: 38px;
-            min-width: 38px;
-            border-radius: 9999px;
-            background: #6d28d9;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: .1px;
-        }
-
-        .user-meta-reference {
-            min-width: 0;
-            line-height: 1.05;
-            text-align: left;
-        }
-
-        .user-name-reference {
-            margin: 0;
-            color: #111827;
-            font-size: 13px;
-            font-weight: 800;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
-        }
-
-        .user-detail-reference {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 4px;
-            color: #64748b;
-            font-size: 10px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .user-role-reference {
-            color: #64748b;
-        }
-
-        .user-separator-reference {
-            color: #94a3b8;
-            font-weight: 700;
-        }
-
-        .user-location-reference {
-            color: #64748b;
-        }
-        
     </style>
 </head>
 <body class="light h-screen h-[100dvh] flex overflow-hidden relative" oncontextmenu="return false;" onkeydown="return blockShortcuts(event);" ondragstart="return false;">
@@ -330,9 +262,9 @@
                         </div>
                         <div class="leading-tight min-w-0">
                             <!-- Teks Nama: Hitam di Light Mode, Putih di Dark Mode -->
-                            <p id="userNameSidebar" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">-</p>
+                            <p id="userNameSidebar" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">AHMAD DENNY</p>
                             <!-- Teks Posisi: Abu-abu Soft di kedua mode -->
-                            <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 dark:text-slate-400 truncate mt-0.5">-</p>
+                            <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 dark:text-slate-400 truncate mt-0.5">RBPM - REGION</p>
                         </div>
                     </div>
                 </div>
@@ -368,15 +300,13 @@
                 <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                 </button>
-                <!-- Desktop User Info - Style Referensi -->
-                <div id="userInfoChip" class="hidden md:flex user-info-reference">
-                    <div id="userAvatarCircle" class="user-avatar-reference">U</div>
-                    <div class="user-meta-reference">
-                        <p id="userNameChip" class="user-name-reference">-</p>
-                        <div class="user-detail-reference">
-                            <span id="userPosChip" class="user-role-reference">-</span>
-                            <span class="user-separator-reference">|</span>
-                            <span id="userLocChip" class="user-location-reference">-</span>
+                <div class="hidden sm:flex items-center gap-2.5 p-1.5 pr-4 rounded-full bg-transparent dark:bg-slate-800">
+                    <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=AD&background=6366f1&color=fff" alt="User" class="w-9 h-9 rounded-full shrink-0">
+                    <div class="min-w-0 hidden md:block">
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide uppercase truncate" id="sidebar-user-name">AHMAD DENNY</p>
+                        <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                            <span id="sidebar-user-position">RBPM •</span>
+                            <span class="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-wider border border-emerald-100 dark:border-emerald-800/50" id="sidebar-user-location">REGION</span>
                         </div>
                     </div>
                 </div>
@@ -750,7 +680,7 @@
         
                 // Populate Desktop
                 if (nameEl) nameEl.textContent = displayName;
-                if (posTextEl) posTextEl.textContent = `${userPos} |`;
+                if (posTextEl) posTextEl.textContent = `${userPos} •`;
                 if (locBadgeEl) locBadgeEl.textContent = userLoc ? userLoc.toUpperCase() : '-';
                 if (avatarEl) {
                     avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=4f46e5&color=fff`;
