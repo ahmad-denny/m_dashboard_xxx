@@ -261,9 +261,9 @@
                         </div>
                         <div class="leading-tight min-w-0">
                             <!-- Teks Nama: Hitam di Light Mode, Putih di Dark Mode -->
-                            <p id="userNameSidebar" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">-</p>
+                            <p id="userNameSidebar" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">AHMAD DENNY</p>
                             <!-- Teks Posisi: Abu-abu Soft di kedua mode -->
-                            <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 dark:text-slate-400 truncate mt-0.5">-</p>
+                            <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 dark:text-slate-400 truncate mt-0.5">RBPM - REGION</p>
                         </div>
                     </div>
                 </div>
@@ -302,13 +302,10 @@
                 <div class="hidden sm:flex items-center gap-2.5 p-1.5 pr-4 rounded-full bg-transparent dark:bg-slate-800">
                     <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=AD&background=6366f1&color=fff" alt="User" class="w-9 h-9 rounded-full shrink-0">
                     <div class="min-w-0 hidden md:block">
-                        <!-- Nama User -->
-                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide uppercase truncate" id="sidebar-user-name">-</p>
-                        
-                        <!-- Posisi & Badge Lokasi -->
-                        <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mt-0.5">
-                            <span id="sidebar-user-pos">-</span>
-                            <span id="sidebar-user-loc-badge" class="hidden bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wider border border-emerald-100 dark:border-emerald-800/50 uppercase"></span>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide uppercase truncate" id="sidebar-user-name">AHMAD DENNY</p>
+                        <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                            <span>RBPM •</span>
+                            <span class="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-wider border border-emerald-100 dark:border-emerald-800/50">REGION</span>
                         </div>
                     </div>
                 </div>
@@ -662,43 +659,41 @@
 
         // Data dashboard baru dimuat setelah auth gate (index2.html) memvalidasi sesi
         document.addEventListener('authReady', (e) => {
-            const user = e.detail?.user;
-            if (!user) return;
+            const user = e.detail;
+            if (user) {
+                // Elemen Desktop
+                const nameEl = document.getElementById('sidebar-user-name');
+                const posEl = document.getElementById('sidebar-user-pos');
+                const avatarEl = document.getElementById('sidebar-user-avatar');
         
-            // 1. Ambil Nama
-            const userName = user.nama || user.name || '-';
-            
-            // 2. Ambil Posisi & Lokasi
-            const userPos = user.posisi || user.role || '-';
-            const userLoc = user.lokasi || user.region || user.cabang || '';
+                // Elemen Mobile Card
+                const mobileNameEl = document.getElementById('userNameSidebar');
+                const mobilePosEl = document.getElementById('userPosSidebar');
+                const mobileAvatarEl = document.getElementById('userAvatarSidebar');
         
-            // 3. Update Nama
-            const nameElDesk = document.getElementById('sidebar-user-name');
-            const nameElMob = document.getElementById('userNameSidebar');
-            if (nameElDesk) nameElDesk.textContent = userName;
-            if (nameElMob) nameElMob.textContent = userName;
+                const displayName = user.nama || 'User';
+                const userPos = user.posisi || '-';
+                const userLoc = user.lokasi || user.region || user.cabang || '';
+                const displayPos = userLoc ? `${userPos} - ${userLoc}` : userPos;
         
-            // 4. Update Posisi
-            const posElDesk = document.getElementById('sidebar-user-pos');
-            if (posElDesk) posElDesk.textContent = userPos;
+                // Populate Desktop
+                if (nameEl) nameEl.textContent = displayName;
+                if (posEl) posEl.textContent = displayPos;
+                if (avatarEl) {
+                    avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=4f46e5&color=fff`;
+                }
         
-            // 5. Update Badge Lokasi (Pill Hijau)
-            const locBadgeDesk = document.getElementById('sidebar-user-loc-badge');
-            if (locBadgeDesk) {
-                if (userLoc) {
-                    locBadgeDesk.textContent = userLoc;
-                    locBadgeDesk.classList.remove('hidden'); // Tampilkan pill hijau jika ada lokasi
-                } else {
-                    locBadgeDesk.classList.add('hidden'); // Sembunyikan jika tidak ada lokasi
+                // Populate Mobile Card
+                if (mobileNameEl) mobileNameEl.textContent = displayName;
+                if (mobilePosEl) mobilePosEl.textContent = displayPos;
+                if (mobileAvatarEl) {
+                    mobileAvatarEl.textContent = displayName.charAt(0).toUpperCase();
                 }
             }
         
-            // Jika ada elemen posisi di Mobile Card:
-            const posElMob = document.getElementById('userPosSidebar');
-            if (posElMob) {
-                posElMob.textContent = userLoc ? `${userPos} • ${userLoc}` : userPos;
-            }
-        });
+            buildCSVTabs();
+            loadSelectedCSV(currentActiveFileIndex);
+        });      
         
         // --- STATE MANAGEMENT ---
         window.customLegendStates = window.customLegendStates || {};
