@@ -284,12 +284,6 @@
                 </div>
             </div>
             <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
-                <!--
-                <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-yellow-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full transition-colors focus:outline-none" title="Toggle Theme">
-                    <i class="fa-solid fa-moon dark:hidden"></i>
-                    <i class="fa-solid fa-sun hidden dark:block"></i>
-                </button>
-                -->
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
                     <option value="">Loading...</option>
                 </select>
@@ -299,11 +293,17 @@
                 <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                 </button>
-                <div class="hidden sm:flex items-center gap-2 pl-2 ml-0.5 border-l border-slate-200 dark:border-dark-border">
-                    <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=U&background=4f46e5&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 shrink-0">
-                    <div class="min-w-0 hidden md:block">
-                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[140px]" id="sidebar-user-name">Logged in as RBPM - Region Sumatera</p>
-                        <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate max-w-[140px]" id="sidebar-user-pos">Typing, Create, Update, Repeat</p>
+
+                <!-- USER INFO CARD (DESKTOP) DENGAN TAMPILAN SESUAI GAMBAR -->
+                <div class="hidden sm:flex items-center pl-2 ml-0.5 border-l border-slate-200 dark:border-dark-border">
+                    <div class="bg-indigo-50/60 dark:bg-slate-800 border border-indigo-100 dark:border-slate-700/60 rounded-xl px-3 py-1.5 shadow-sm flex items-center gap-2.5">
+                        <div id="sidebar-user-avatar-text" class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                            A
+                        </div>
+                        <div class="min-w-0 leading-tight">
+                            <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate max-w-[150px]" id="sidebar-user-name">AHMAD DENNY</p>
+                            <p class="text-[10px] font-medium text-slate-400 dark:text-slate-400 truncate max-w-[150px]" id="sidebar-user-pos">RBPM - REGION</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -661,7 +661,7 @@
                 // Elemen Desktop
                 const nameEl = document.getElementById('sidebar-user-name');
                 const posEl = document.getElementById('sidebar-user-pos');
-                const avatarEl = document.getElementById('sidebar-user-avatar');
+                const avatarTextEl = document.getElementById('sidebar-user-avatar-text');
         
                 // Elemen Mobile Card
                 const mobileNameEl = document.getElementById('userNameSidebar');
@@ -672,19 +672,18 @@
                 const userPos = user.posisi || '-';
                 const userLoc = user.lokasi || user.region || user.cabang || '';
                 const displayPos = userLoc ? `${userPos} - ${userLoc}` : userPos;
+                const initial = displayName.charAt(0).toUpperCase();
         
                 // Populate Desktop
                 if (nameEl) nameEl.textContent = displayName;
                 if (posEl) posEl.textContent = displayPos;
-                if (avatarEl) {
-                    avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=4f46e5&color=fff`;
-                }
+                if (avatarTextEl) avatarTextEl.textContent = initial;
         
                 // Populate Mobile Card
                 if (mobileNameEl) mobileNameEl.textContent = displayName;
                 if (mobilePosEl) mobilePosEl.textContent = displayPos;
                 if (mobileAvatarEl) {
-                    mobileAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+                    mobileAvatarEl.textContent = initial;
                 }
             }
         
@@ -1116,7 +1115,6 @@
             return name;
         }
 
-        // OPTIMASI 3: Single pass processing + Type conversion
         function processData() {
             aggCache = { byProductMonth: {}, byGroupMonth: {}, byCoBranchMonth: {}, byOfficeMonth: {}, grandTotalMonth: {}, caSaTdTotals: {} };
             
@@ -1296,7 +1294,6 @@
             applyFilters();
         }
 
-        // OPTIMASI 4: Re-aggregate only when filters change
         function applyFilters() {
             isComparisonMode = false; 
             comparisonData = [];
@@ -1461,11 +1458,9 @@
         }
 
         window.resetFilters = function() {
-            // --- PERBAIKAN UTAMA: RESET STATE COMPARISON ---
             isComparisonMode = false;
             comparisonData = [];
             restoreTableOriginalPosition();
-            // -----------------------------------------------
 
             filterColumns.forEach(col => { 
                 const s = document.getElementById(`filter-${col}`); 
@@ -1503,7 +1498,6 @@
             processData();
             updateDashboardTitle();
             
-            // Kembalikan judul tabel ke default
             document.getElementById('table-title').innerText = "Detailed Breakdown";
             
             updateDashboard();
@@ -1518,7 +1512,6 @@
             });
         }
 
-        // --- FORMATTING FUNCTIONS (UPDATED FOR SLI) ---
         function formatNumber(num) { return new Intl.NumberFormat('id-ID').format(Math.round(num)); }
         function formatToBillion(num) {
             if (!num && num !== 0) return "0";
@@ -1581,7 +1574,6 @@
             }
         }
 
-        // OPTIMASI 5: KPI menggunakan Cache (FIXED FOR SLI)
         function updateKPIs() {
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             const isBillionFormat = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'coll.csv', 'sli.csv'].includes(currentFileName);
@@ -1617,18 +1609,15 @@
                 return ytdSum;
             };
 
-            // LOGIKA KHUSUS SLI (PERBAIKAN UTAMA DI SINI)
             if (currentFileName === "mdin.csv" || currentFileName === "qris.csv") {
                 const currentIndex = monthColumns.indexOf(lastMonth);
                 const m1 = currentIndex >= 0 ? monthColumns[currentIndex] : '-';
                 const m2 = currentIndex >= 1 ? monthColumns[currentIndex - 1] : '-';
                 const m3 = currentIndex >= 2 ? monthColumns[currentIndex - 2] : '-';
-                const m4 = currentIndex >= 3 ? monthColumns[currentIndex - 3] : '-';
                 
                 const t1 = aggCache.grandTotalMonth[m1] || 0;
                 const t2 = aggCache.grandTotalMonth[m2] || 0;
                 const t3 = aggCache.grandTotalMonth[m3] || 0;
-                const t4 = aggCache.grandTotalMonth[m4] || 0;
                 
                 document.getElementById('kpi-total-label').innerText = `Acquisition (${m1})`; animateNumber(document.getElementById('kpi-total'), t1);
                 if (m1 !== '-') updateYtdBadge('ytd-total', 'ytd-total-val', calculateYTDFromCache(m1, m => aggCache.grandTotalMonth[m]), false); else document.getElementById('ytd-total').classList.add('hidden');
@@ -1638,1155 +1627,22 @@
                 if (m2 !== '-') updateYtdBadge('ytd-seg1', 'ytd-seg1-val', calculateYTDFromCache(m2, m => aggCache.grandTotalMonth[m]), false); else document.getElementById('ytd-seg1').classList.add('hidden');
                 
                 document.getElementById('kpi-segment2-label').innerText = `Acquisition (${m3})`; animateNumber(document.getElementById('kpi-segment2'), t3);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span class="text-slate-400 dark:text-slate-500 font-normal text-[8px]">Last 3 month</span>`;
-                if (m3 !== '-') updateYtdBadge('ytd-seg2', 'ytd-seg2-val', calculateYTDFromCache(m3, m => aggCache.grandTotalMonth[m]), false); else document.getElementById('ytd-seg2').classList.add('hidden');
-                
-                kpiFourthLabel.innerText = `Acquisition (${m4})`; kpiFourthValue.innerText = formatNumber(t4);
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 not-italic truncate"; kpiFourthSublabel.innerText = "Last 4 month";
-                kpiFourthIcon.className = "fa-solid fa-calendar-check";
-                if (m4 !== '-') updateYtdBadge('ytd-fourth', 'ytd-fourth-val', calculateYTDFromCache(m4, m => aggCache.grandTotalMonth[m]), false); else document.getElementById('ytd-fourth').classList.add('hidden');
-                
-                ['mom-total', 'mom-seg1', 'mom-seg2', 'mom-fourth'].forEach(id => document.getElementById(id).innerHTML = '');
-                
-            } else if (currentFileName === "finbook.csv" || currentFileName === "finos.csv") {
-                const label = currentFileName === "finbook.csv" ? "Booking Total" : "Portfolio Total";
-                document.getElementById('kpi-total-label').innerText = label;
-                if (isBillionFormat) { document.getElementById('kpi-total').innerText = formatToBillion(grandTotal); } else { animateNumber(document.getElementById('kpi-total'), grandTotal); }
-                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
-                
-                const g1 = groupLabels[0], g2 = groupLabels[1];
-                const g1Total = aggCache.byGroupMonth[g1]?.[lastMonth] || 0;
-                const g2Total = aggCache.byGroupMonth[g2]?.[lastMonth] || 0;
-                const g1Prev = aggCache.byGroupMonth[g1]?.[prevMonth] || 0;
-                const g2Prev = aggCache.byGroupMonth[g2]?.[prevMonth] || 0;
-                
-                const ytdTotal = calculateYTDFromCache(lastMonth, m => aggCache.grandTotalMonth[m]);
-                const ytdSeg1 = calculateYTDFromCache(lastMonth, m => aggCache.byGroupMonth[g1]?.[m] || 0);
-                const ytdSeg2 = calculateYTDFromCache(lastMonth, m => aggCache.byGroupMonth[g2]?.[m] || 0);
-                
-                updateYtdBadge('ytd-total', 'ytd-total-val', ytdTotal, isBillionFormat);
-                updateYtdBadge('ytd-seg1', 'ytd-seg1-val', ytdSeg1, isBillionFormat);
-                updateYtdBadge('ytd-seg2', 'ytd-seg2-val', ytdSeg2, isBillionFormat);
-                
-                const g1Pct = grandTotal ? ((g1Total / grandTotal) * 100) : 0;
-                const g2Pct = grandTotal ? ((g2Total / grandTotal) * 100) : 0;
-                
-                document.getElementById('kpi-segment1-label').innerText = g1 ? `${g1}` : 'Segment 1';
-                if (isBillionFormat) { document.getElementById('kpi-segment1').innerText = g1 ? formatToBillion(g1Total) : "0"; } else { animateNumber(document.getElementById('kpi-segment1'), g1Total); }
-                renderMoM('mom-seg1', g1Total, g1Prev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g1-pct'), g1Pct, true);
-                
-                document.getElementById('kpi-segment2-label').innerText = g2 ? `${g2}` : 'Segment 2';
-                if (isBillionFormat) { document.getElementById('kpi-segment2').innerText = g2 ? formatToBillion(g2Total) : "0"; } else { animateNumber(document.getElementById('kpi-segment2'), g2Total); }
-                renderMoM('mom-seg2', g2Total, g2Prev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g2-pct'), g2Pct, true);
-                
-                kpiFourthLabel.innerText = "Last Month";
-                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(grandTotalPrev) : formatNumber(grandTotalPrev);
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 not-italic truncate";
-                kpiFourthSublabel.innerText = prevMonth || '-';
-                kpiFourthIcon.className = "fa-solid fa-book-open";
-                renderMoM('mom-fourth', grandTotalPrev, prevPrevMonthGrandTotal, isBillionFormat, isNPF, prevPrevMonth);
-                document.getElementById('ytd-fourth').classList.add('hidden');
-                
-            } else if (currentFileName === "funding.csv" || currentFileName === "priority.csv") {
-                const label = currentFileName === "funding.csv" ? "Funding Total" : "Priority Total";
-                document.getElementById('kpi-total-label').innerText = label;
-                if (isBillionFormat) { document.getElementById('kpi-total').innerText = formatToBillion(grandTotal); } else { animateNumber(document.getElementById('kpi-total'), grandTotal); }
-                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
-                
-                const caTotal = aggCache.caSaTdTotals[lastMonth]?.ca || 0;
-                const saTotal = aggCache.caSaTdTotals[lastMonth]?.sa || 0;
-                const tdTotal = aggCache.caSaTdTotals[lastMonth]?.td || 0;
-                const caPrev = aggCache.caSaTdTotals[prevMonth]?.ca || 0;
-                const saPrev = aggCache.caSaTdTotals[prevMonth]?.sa || 0;
-                const tdPrev = aggCache.caSaTdTotals[prevMonth]?.td || 0;
-                
-                let fourthSublabelText = `${(tdTotal / grandTotal * 100).toFixed(1)}% from Total`;
-                const parts = lastMonth.split(/[-\s]+/);
-                let selectedYear = null;
-                for (let part of parts) { if (/^\d{2}$/.test(part) || /^\d{4}$/.test(part)) { selectedYear = part; break; } }
-                if (!selectedYear) selectedYear = new Date().getFullYear().toString().slice(-2);
-                
-                if (selectedYear === '26' || selectedYear === '2026') {
-                    let dec2025Col = null;
-                    for (let mCol of monthColumns) {
-                        const mLower = mCol.toLowerCase();
-                        if ((mLower.includes('25')) && (mLower.includes('des') || mLower.includes('dic') || mLower.includes('dec'))) { dec2025Col = mCol; break; }
-                    }
-                    if (dec2025Col) {
-                        const curGT = grandTotal;
-                        const decGT = aggCache.grandTotalMonth[dec2025Col] || 0;
-                        updateYtdBadge('ytd-total', 'ytd-total-val', curGT - decGT, isBillionFormat);
-                        
-                        const decCA = aggCache.caSaTdTotals[dec2025Col]?.ca || 0;
-                        const decSA = aggCache.caSaTdTotals[dec2025Col]?.sa || 0;
-                        const decTD = aggCache.caSaTdTotals[dec2025Col]?.td || 0;
-                        
-                        updateYtdBadge('ytd-seg1', 'ytd-seg1-val', caTotal - decCA, isBillionFormat);
-                        updateYtdBadge('ytd-seg2', 'ytd-seg2-val', saTotal - decSA, isBillionFormat);
-                        updateYtdBadge('ytd-fourth', 'ytd-fourth-val', tdTotal - decTD, isBillionFormat);
-                    } else {
-                        ['ytd-total', 'ytd-seg1', 'ytd-seg2', 'ytd-fourth'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                    }
-                } else {
-                    ['ytd-total', 'ytd-seg1', 'ytd-seg2', 'ytd-fourth'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                }
-                
-                document.getElementById('kpi-segment1-label').innerText = "CA (Giro)";
-                if (isBillionFormat) { document.getElementById('kpi-segment1').innerText = formatToBillion(caTotal); } else { animateNumber(document.getElementById('kpi-segment1'), caTotal); }
-                renderMoM('mom-seg1', caTotal, caPrev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-ca-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-ca-pct'), caTotal / grandTotal * 100, true);
-                
-                document.getElementById('kpi-segment2-label').innerText = "SA (Saving)";
-                if (isBillionFormat) { document.getElementById('kpi-segment2').innerText = formatToBillion(saTotal); } else { animateNumber(document.getElementById('kpi-segment2'), saTotal); }
-                renderMoM('mom-seg2', saTotal, saPrev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-sa-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-sa-pct'), saTotal / grandTotal * 100, true);
-                
-                kpiFourthLabel.innerText = "TD (TIME DEPOSIT)";
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 not-italic truncate";
-                if (isBillionFormat) { kpiFourthValue.innerText = formatToBillion(tdTotal); } else { animateNumber(kpiFourthValue, tdTotal); }
-                renderMoM('mom-fourth', tdTotal, tdPrev, isBillionFormat, isNPF);
-                kpiFourthSublabel.innerText = fourthSublabelText;
-                
-            } else if (currentFileName === "haji.csv") {
-                document.getElementById('kpi-total-label').innerText = "PORTION TOTAL";
-                animateNumber(document.getElementById('kpi-total'), grandTotal);
-                renderMoM('mom-total', grandTotal, grandTotalPrev, false, isNPF);
-                
-                const g1 = groupLabels[0], g2 = groupLabels[1];
-                const g1Total = aggCache.byGroupMonth[g1]?.[lastMonth] || 0;
-                const g2Total = aggCache.byGroupMonth[g2]?.[lastMonth] || 0;
-                const g1Prev = aggCache.byGroupMonth[g1]?.[prevMonth] || 0;
-                const g2Prev = aggCache.byGroupMonth[g2]?.[prevMonth] || 0;
-                
-                const ytdTotal = calculateYTDFromCache(lastMonth, m => aggCache.grandTotalMonth[m]);
-                const ytdSeg1 = calculateYTDFromCache(lastMonth, m => aggCache.byGroupMonth[g1]?.[m] || 0);
-                const ytdSeg2 = calculateYTDFromCache(lastMonth, m => aggCache.byGroupMonth[g2]?.[m] || 0);
-                
-                updateYtdBadge('ytd-total', 'ytd-total-val', ytdTotal, false);
-                updateYtdBadge('ytd-seg1', 'ytd-seg1-val', ytdSeg1, false);
-                updateYtdBadge('ytd-seg2', 'ytd-seg2-val', ytdSeg2, false);
-                document.getElementById('ytd-fourth').classList.add('hidden');
-                
-                document.getElementById('kpi-segment1-label').innerText = g1 ? `${g1}` : 'Segment 1';
-                animateNumber(document.getElementById('kpi-segment1'), g1Total);
-                renderMoM('mom-seg1', g1Total, g1Prev, false, isNPF);
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g1-pct'), grandTotal ? ((g1Total / grandTotal) * 100) : 0, true);
-                
-                document.getElementById('kpi-segment2-label').innerText = g2 ? `${g2}` : 'Segment 2';
-                animateNumber(document.getElementById('kpi-segment2'), g2Total);
-                renderMoM('mom-seg2', g2Total, g2Prev, false, isNPF);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g2-pct'), grandTotal ? ((g2Total / grandTotal) * 100) : 0, true);
-                
-                kpiFourthLabel.innerText = "Last Month";
-                kpiFourthValue.innerText = formatNumber(grandTotalPrev);
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 not-italic truncate";
-                kpiFourthSublabel.innerText = prevMonth || '-';
-                kpiFourthIcon.className = "fa-solid fa-book-open";
-                renderMoM('mom-fourth', grandTotalPrev, prevPrevMonthGrandTotal, false, isNPF, prevPrevMonth);
-                
-            } else if (currentFileName === "coll.csv" || currentFileName === "sli.csv") {
-                const label = currentFileName === "coll.csv" ? "Outstanding Total" : "Booking Total";
-                document.getElementById('kpi-total-label').innerText = label;
-                if (isBillionFormat) { document.getElementById('kpi-total').innerText = formatToBillion(grandTotal); } else { animateNumber(document.getElementById('kpi-total'), grandTotal); }
-                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
-                ['ytd-total', 'ytd-seg1', 'ytd-seg2', 'ytd-fourth'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                
-                const g1 = groupLabels[0]; const g2 = groupLabels[1];
-                const g1Total = aggCache.byGroupMonth[g1]?.[lastMonth] || 0;
-                const g2Total = aggCache.byGroupMonth[g2]?.[lastMonth] || 0;
-                const g1Prev = aggCache.byGroupMonth[g1]?.[prevMonth] || 0;
-                const g2Prev = aggCache.byGroupMonth[g2]?.[prevMonth] || 0;
-                
-                document.getElementById('kpi-segment1-label').innerText = g1 ? `${g1}` : 'Segment 1';
-                if (isBillionFormat) { document.getElementById('kpi-segment1').innerText = g1 ? formatToBillion(g1Total) : "0"; } else { animateNumber(document.getElementById('kpi-segment1'), g1Total); }
-                renderMoM('mom-seg1', g1Total, g1Prev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g1-pct'), grandTotal ? ((g1Total / grandTotal) * 100) : 0, true);
-                
-                document.getElementById('kpi-segment2-label').innerText = g2 ? `${g2}` : 'Segment 2';
-                if (isBillionFormat) { document.getElementById('kpi-segment2').innerText = g2 ? formatToBillion(g2Total) : "0"; } else { animateNumber(document.getElementById('kpi-segment2'), g2Total); }
-                renderMoM('mom-seg2', g2Total, g2Prev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g2-pct'), grandTotal ? ((g2Total / grandTotal) * 100) : 0, true);
-                
-                kpiFourthLabel.innerText = "Last Month";
-                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(grandTotalPrev) : formatNumber(grandTotalPrev);
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 not-italic truncate";
-                kpiFourthSublabel.innerText = prevMonth || '-';
-                kpiFourthIcon.className = "fa-solid fa-book-open";
-                renderMoM('mom-fourth', grandTotalPrev, prevPrevMonthGrandTotal, isBillionFormat, isNPF, prevPrevMonth);
-                
-            } else {
-                kpiFourthLabel.innerText = "Top Product";
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 italic truncate";
-                kpiFourthSublabel.innerText = "By Volume Month";
-                kpiFourthIcon.className = "fa-solid fa-trophy";
-                ['ytd-total', 'ytd-seg1', 'ytd-seg2', 'ytd-fourth'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                
-                document.getElementById('kpi-total-label').innerText = "OUTSTANDING TOTAL";
-                if (isBillionFormat) { document.getElementById('kpi-total').innerText = formatToBillion(grandTotal); } else { animateNumber(document.getElementById('kpi-total'), grandTotal); }
-                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
-                
-                const g1 = groupLabels[0]; const g2 = groupLabels[1];
-                const g1Total = aggCache.byGroupMonth[g1]?.[lastMonth] || 0;
-                const g2Total = aggCache.byGroupMonth[g2]?.[lastMonth] || 0;
-                const g1Prev = aggCache.byGroupMonth[g1]?.[prevMonth] || 0;
-                const g2Prev = aggCache.byGroupMonth[g2]?.[prevMonth] || 0;
-                
-                document.getElementById('kpi-segment1-label').innerText = g1 ? `${g1}` : 'Segment 1';
-                if (isBillionFormat) { document.getElementById('kpi-segment1').innerText = g1 ? formatToBillion(g1Total) : "0"; } else { animateNumber(document.getElementById('kpi-segment1'), g1Total); }
-                renderMoM('mom-seg1', g1Total, g1Prev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g1-pct'), grandTotal ? ((g1Total / grandTotal) * 100) : 0, true);
-                
-                document.getElementById('kpi-segment2-label').innerText = g2 ? `${g2}` : 'Segment 2';
-                if (isBillionFormat) { document.getElementById('kpi-segment2').innerText = g2 ? formatToBillion(g2Total) : "0"; } else { animateNumber(document.getElementById('kpi-segment2'), g2Total); }
-                renderMoM('mom-seg2', g2Total, g2Prev, isBillionFormat, isNPF);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span>`;
-                animateNumber(document.getElementById('anim-g2-pct'), grandTotal ? ((g2Total / grandTotal) * 100) : 0, true);
-                
-                let topProduct = "-"; let maxVal = 0;
-                distinctProducts.forEach(p => {
-                    const val = aggCache.byProductMonth[p]?.[lastMonth] || 0;
-                    if (val > maxVal) { maxVal = val; topProduct = p; }
-                });
-                kpiFourthValue.innerText = toProperCase(topProduct);
-                const topPrev = aggCache.byProductMonth[topProduct]?.[prevMonth] || 0;
-                renderMoM('mom-fourth', maxVal, topPrev, isBillionFormat, isNPF);
-                document.getElementById('mix-chart-title').innerText = "Product Mix";
             }
-            
-            // Group Percentage Labels
-            groupLabels.forEach((grp, idx) => {
-                const element = document.getElementById(`comp-group-pct-${idx}`);
-                if (element) {
-                    let pct = 0;
-                    if (currentFileName === "mdin.csv" || currentFileName === "qris.csv") {
-                        const currentIndex = monthColumns.indexOf(lastMonth);
-                        let grp4MTotal = 0; let all4MTotal = 0;
-                        for (let k = 0; k < 4; k++) {
-                            const m = currentIndex - k >= 0 ? monthColumns[currentIndex - k] : null;
-                            if (m) {
-                                grp4MTotal += aggCache.byGroupMonth[grp]?.[m] || 0;
-                                all4MTotal += aggCache.grandTotalMonth[m] || 0;
-                            }
-                        }
-                        pct = all4MTotal ? ((grp4MTotal / all4MTotal) * 100) : 0;
-                    } else {
-                        const grpTotal = aggCache.byGroupMonth[grp]?.[lastMonth] || 0;
-                        pct = grandTotal ? ((grpTotal / grandTotal) * 100) : 0;
-                    }
-                    animateNumber(element, pct, true);
-                }
-            });
         }
-
-        function updateCharts() { updateTrendChart(); updateCompositionChart(); updateCoBranchChart(); updateBranchChart(); }
-
-        // OPTIMASI 6: Charts menggunakan Cache
-        function updateTrendChart() {
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            const isDark = document.body.classList.contains('dark');
-            const gridColor = isDark ? '#334155' : '#e2e8f0';
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            
-            let labels = [...monthColumns];
-            if (customTimeline.start !== null && customTimeline.end !== null) {
-                labels = labels.slice(customTimeline.start, customTimeline.end + 1);
-            } else if (activeTimelineMonths > 0) {
-                labels = labels.slice(-activeTimelineMonths);
-            }
-            
-            const titleText = labels.length > 0 ? `Trend (${labels[0]} to ${labels[labels.length - 1]})` : "Performance Trend";
-            document.getElementById('trend-title').innerText = titleText;
-            
-            const datasets = distinctProducts.map(prod => {
-                const dataPoints = labels.map(month => aggCache.byProductMonth[prod]?.[month] || 0);
-                return {
-                    label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
-                    data: dataPoints,
-                    borderColor: productColors[prod],
-                    backgroundColor: getOutlineColor(productColors[prod], 0.15),
-                    borderWidth: 2, tension: 0.3,
-                    pointRadius: window.innerWidth < 768 ? 2 : 4,
-                    pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
-                    pointBorderColor: productColors[prod], pointBorderWidth: 1.5
-                };
-            });
-            
-            if (currentFileName !== "mdin.csv") {
-                const totalDataPoints = labels.map(month => aggCache.grandTotalMonth[month] || 0);
-                datasets.push({
-                    label: 'Total', data: totalDataPoints,
-                    borderColor: isDark ? '#94a3b8' : '#1e293b', backgroundColor: 'rgba(30,41,59,0.05)',
-                    borderWidth: 3.5, borderDash: [5, 2], tension: 0.3,
-                    pointRadius: window.innerWidth < 768 ? 2 : 4,
-                    pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
-                    pointBorderColor: isDark ? '#94a3b8' : '#1e293b', pointBorderWidth: 1.5
-                });
-            }
-            
-            if (charts.trend) charts.trend.destroy();
-            charts.trend = new Chart(ctx, {
-                type: 'line',
-                data: { labels: labels, datasets: datasets },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: getOutlineLegendConfig('trendChart', isDark),
-                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + formatChartValue(context.raw, currentFileName); } } }
-                    },
-                    scales: {
-                        y: { grid: { display: false, color: gridColor }, ticks: { font: { size: 9 }, color: textColor, callback: (val) => formatChartValue(val, currentFileName) } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9 }, color: textColor, maxRotation: 45, minRotation: 45 } }
-                    }
-                }
-            });
-        }
-
-        function updateCompositionChart() {
-            const ctx = document.getElementById('compositionChart').getContext('2d');
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isDark = document.body.classList.contains('dark');
-            
-            const staticPercentPlugin = {
-                id: 'staticPercentPlugin',
-                afterDatasetsDraw(chart, args, options) {
-                    const { ctx, data } = chart;
-                    ctx.save();
-                    const meta = chart.getDatasetMeta(0);
-                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                    if (!meta.data || meta.data.length === 0 || total === 0) return;
-                    
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
-                    
-                    meta.data.forEach((element, index) => {
-                        if (element.hidden) return;
-                        const value = data.datasets[0].data[index];
-                        if (value === 0) return;
-                        
-                        let labelText = "";
-                        if (compViewMode === 'percent') labelText = ((value / total) * 100).toFixed(1) + '%';
-                        else labelText = formatChartValue(value, currentFileName);
-                        
-                        const { startAngle, endAngle, x, y, outerRadius, innerRadius } = element;
-                        const angle = (startAngle + endAngle) / 2;
-                        const midRadius = innerRadius + ((outerRadius - innerRadius) * 0.6);
-                        const textX = x + Math.cos(angle) * midRadius;
-                        const textY = y + Math.sin(angle) * midRadius;
-                        const sliceAngleDeg = (endAngle - startAngle) * (180 / Math.PI);
-                        
-                        if (sliceAngleDeg > 10 || value > 0) {
-                            ctx.font = `bold 9px Inter, sans-serif`; ctx.fillStyle = '#ffffff';
-                            ctx.strokeText(labelText, textX, textY); ctx.fillText(labelText, textX, textY);
-                        }
-                    });
-                    ctx.restore();
-                }
-            };
-            
-            let labels = [], dataValues = [], backgroundColors = [];
-            if (currentFileName === "mdin.csv") {
-                document.getElementById('dynamic-group-pct-labels').style.display = 'none';
-                document.getElementById('mix-chart-title').innerText = "Monthly Acquisition";
-                const currentIndex = monthColumns.indexOf(lastMonth);
-                const last5Months = [];
-                for (let i = 0; i < 5; i++) { if (currentIndex - i >= 0) last5Months.push(monthColumns[currentIndex - i]); }
-                last5Months.reverse();
-                labels = last5Months;
-                dataValues = last5Months.map(month => aggCache.grandTotalMonth[month] || 0);
-                backgroundColors = ['#4f46e5', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'];
-            } else if (currentFileName === "qris.csv") {
-                document.getElementById('dynamic-group-pct-labels').style.display = 'none';
-                document.getElementById('mix-chart-title').innerText = "Product Acquisition";
-                labels = distinctProducts.map(p => p === "Sme" ? "SME" : p.replace(/_/g, ' '));
-                dataValues = distinctProducts.map(prod => aggCache.byProductMonth[prod]?.[lastMonth] || 0);
-                backgroundColors = distinctProducts.map(p => productColors[p]);
-            } else {
-                document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
-                document.getElementById('mix-chart-title').innerText = "Product Distribution";
-                labels = distinctProducts.map(p => p === "Sme" ? "SME" : p.replace(/_/g, ' '));
-                dataValues = distinctProducts.map(prod => aggCache.byProductMonth[prod]?.[lastMonth] || 0);
-                backgroundColors = distinctProducts.map(p => productColors[p]);
-            }
-            
-            if (charts.comp) charts.comp.destroy();
-            charts.comp = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }] },
-                options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '70%',
-                    plugins: {
-                        legend: getOutlineLegendConfig('compChart', isDark),
-                        tooltip: { callbacks: { label: function(context) {
-                            let val = context.raw; let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            let pct = total ? ((val / total) * 100).toFixed(1) + '%' : '0%';
-                            let displayVal = compViewMode === 'percent' ? pct : formatChartValue(val, currentFileName);
-                            return context.label + ': ' + displayVal + (compViewMode === 'value' ? ` (${pct})` : '');
-                        }}}
-                    }
-                },
-                plugins: [staticPercentPlugin]
-            });
-        }
-
-        function updateCoBranchChart() {
-            const ctx = document.getElementById('coBranchChart').getContext('2d');
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isDark = document.body.classList.contains('dark');
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-            const isNpfTab = currentFileName === 'coll.csv';
-            const isGeneralTab = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'haji.csv', 'qris.csv', 'mdin.csv', 'sli.csv'].includes(currentFileName);
-            
-            const titleEl = document.getElementById('co-branch-title');
-            const viewToggle = document.getElementById('view-toggle-co');
-            const npfToggle = document.getElementById('npf-toggle-co');
-            const genToggle = document.getElementById('general-toggle-co');
-            
-            if (isNpfTab || isGeneralTab) {
-                if (titleEl) titleEl.style.display = 'none';
-                if (viewToggle) viewToggle.classList.remove('hidden');
-                if (npfToggle) npfToggle.classList.toggle('hidden', !isNpfTab);
-                if (genToggle) genToggle.classList.toggle('hidden', !isGeneralTab);
-                
-                if (isNpfTab) {
-                    const btnWorst = document.getElementById('btn-npf-worst-co'); const btnBest = document.getElementById('btn-npf-best-co');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
-                    const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
-                    if (npfMode.co === 'worst') { btnWorst.className = active; btnBest.className = inactive; } else { btnWorst.className = inactive; btnBest.className = active; }
-                } else {
-                    const btnTop = document.getElementById('btn-general-top-co'); const btnBottom = document.getElementById('btn-general-bottom-co');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
-                    const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
-                    if (generalMode.co === 'top') { btnTop.className = active; btnBottom.className = inactive; } else { btnTop.className = inactive; btnBottom.className = active; }
-                }
-            } else {
-                if (titleEl) { titleEl.style.display = 'block'; titleEl.innerText = 'Top 5 CO-Branches'; }
-                if (viewToggle) viewToggle.classList.add('hidden');
-                if (npfToggle) npfToggle.classList.add('hidden');
-                if (genToggle) genToggle.classList.add('hidden');
-            }
-            
-            let entries = Object.entries(aggCache.byCoBranchMonth).map(([k, v]) => [k, v[lastMonth] || 0]);
-            let sortedEntries;
-            if (isNpfTab) sortedEntries = entries.sort((a, b) => npfMode.co === 'worst' ? b[1] - a[1] : a[1] - b[1]).slice(0, 5);
-            else if (isGeneralTab) sortedEntries = entries.sort((a, b) => generalMode.co === 'top' ? b[1] - a[1] : a[1] - b[1]).slice(0, 5);
-            else sortedEntries = entries.sort((a, b) => b[1] - a[1]).slice(0, 5);
-            
-            const top5CoBranchNames = sortedEntries.map(entry => entry[0]);
-            const branchTotals = {};
-            top5CoBranchNames.forEach(name => branchTotals[name] = aggCache.byCoBranchMonth[name]?.[lastMonth] || 0);
-            
-            const datasetBreakdown = distinctProducts.map(prod => {
-                return {
-                    label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
-                    data: top5CoBranchNames.map(coName => {
-                        let totalProd = aggCache.byCoBranchMonth[coName]?.products?.[prod]?.[lastMonth] || 0;
-                        if (viewMode.co === 'percent') {
-                            const branchTotal = branchTotals[coName];
-                            return branchTotal ? (totalProd / branchTotal) * 100 : 0;
-                        }
-                        return totalProd;
-                    }),
-                    backgroundColor: productColors[prod],
-                    barThickness: window.innerWidth < 768 ? 10 : 14
-                };
-            });
-            
-            if (charts.coBranch) charts.coBranch.destroy();
-            charts.coBranch = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: top5CoBranchNames, datasets: datasetBreakdown },
-                options: {
-                    indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
-                    layout: { padding: { right: 30 } },
-                    plugins: {
-                        legend: getOutlineLegendConfig('coBranchChart', isDark),
-                        tooltip: { callbacks: { label: function(c) {
-                            let val = c.raw; let suffix = viewMode.co === 'percent' ? '%' : '';
-                            let formattedVal = viewMode.co === 'percent' ? val.toFixed(1) : formatChartValue(val, currentFileName);
-                            return c.dataset.label + ': ' + formattedVal + suffix;
-                        }}}
-                    },
-                    scales: {
-                        x: { stacked: true, display: false, grid: { display: false }, max: viewMode.co === 'percent' ? 100 : undefined, grace: viewMode.co === 'percent' ? '10%' : '5%' },
-                        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 }, color: textColor } }
-                    }
-                },
-                plugins: [{
-                    id: 'internal_bar_labels_instant',
-                    afterDatasetsDraw(chart) {
-                        const { ctx } = chart;
-                        let labelsToDraw = [];
-                        const isGeneralTab = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'haji.csv', 'qris.csv', 'mdin.csv', 'sli.csv'].includes(currentFileName);
-                        const isNpfTab = currentFileName === 'coll.csv';
-                        const isTargetFile = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'coll.csv'].includes(currentFileName);
-                        const isBottomMode = isGeneralTab ? generalMode.co === 'bottom' : (isNpfTab ? npfMode.co === 'bottom' : false);
-                        const forceTwoDecimals = isBottomMode && isTargetFile;
-                        const labelsCount = chart.data.labels.length;
-                        
-                        for (let i = 0; i < labelsCount; i++) {
-                            chart.data.datasets.forEach((ds, di) => {
-                                if (chart.isDatasetVisible(di)) {
-                                    const el = chart.getDatasetMeta(di).data[i];
-                                    const val = ds.data[i];
-                                    if (el && val >= 0) {
-                                        let txt = "", isSmallSegment = false;
-                                        if (viewMode.co === 'percent') {
-                                            if (val > 0.5) { txt = Math.round(val) + '%'; if (val < 15) isSmallSegment = true; }
-                                        } else {
-                                            if (val > 0) txt = formatChartValue(val, currentFileName, forceTwoDecimals ? 1 : null);
-                                        }
-                                        if (txt !== "") {
-                                            const w = Math.abs(el.x - el.base);
-                                            const textWidth = ctx.measureText(txt).width;
-                                            let xPos = el.base + 4;
-                                            if (isSmallSegment && textWidth > w) xPos = el.base + ((w - textWidth) / 2);
-                                            else if (textWidth > w - 8) xPos = el.base + ((w - textWidth) / 2);
-                                            labelsToDraw.push({ text: txt, x: xPos, y: el.y, isSmall: isSmallSegment, width: textWidth });
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        
-                        labelsToDraw.sort((a, b) => (a.isSmall === b.isSmall) ? 0 : a.isSmall ? 1 : -1);
-                        ctx.save();
-                        ctx.font = 'bold 9px Inter, sans-serif'; ctx.textBaseline = 'middle';
-                        ctx.strokeStyle = '#000000'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
-                        labelsToDraw.forEach(lbl => { ctx.fillStyle = '#ffffff'; ctx.strokeText(lbl.text, lbl.x, lbl.y); ctx.fillText(lbl.text, lbl.x, lbl.y); });
-                        ctx.restore();
-                    }
-                }]
-            });
-        }
-
-        function updateBranchChart() {
-            const ctx = document.getElementById('branchChart').getContext('2d');
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isDark = document.body.classList.contains('dark');
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-            const isNpfTab = currentFileName === 'coll.csv';
-            const isGeneralTab = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'haji.csv', 'qris.csv', 'mdin.csv', 'sli.csv'].includes(currentFileName);
-            
-            const titleEl = document.getElementById('branch-title');
-            const viewToggle = document.getElementById('view-toggle-branch');
-            const npfToggle = document.getElementById('npf-toggle-branch');
-            const genToggle = document.getElementById('general-toggle-branch');
-            
-            if (isNpfTab || isGeneralTab) {
-                if (titleEl) titleEl.style.display = 'none';
-                if (viewToggle) viewToggle.classList.remove('hidden');
-                if (npfToggle) npfToggle.classList.toggle('hidden', !isNpfTab);
-                if (genToggle) genToggle.classList.toggle('hidden', !isGeneralTab);
-                
-                if (isNpfTab) {
-                    const btnWorst = document.getElementById('btn-npf-worst-branch'); const btnBest = document.getElementById('btn-npf-best-branch');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
-                    const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
-                    if (npfMode.branch === 'worst') { btnWorst.className = active; btnBest.className = inactive; } else { btnWorst.className = inactive; btnBest.className = active; }
-                } else {
-                    const btnTop = document.getElementById('btn-general-top-branch'); const btnBottom = document.getElementById('btn-general-bottom-branch');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
-                    const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
-                    if (generalMode.branch === 'top') { btnTop.className = active; btnBottom.className = inactive; } else { btnTop.className = inactive; btnBottom.className = active; }
-                }
-            } else {
-                if (titleEl) { titleEl.style.display = 'block'; titleEl.innerText = 'Top 5 Branches'; }
-                if (viewToggle) viewToggle.classList.add('hidden');
-                if (npfToggle) npfToggle.classList.add('hidden');
-                if (genToggle) genToggle.classList.add('hidden');
-            }
-            
-            let entries = Object.entries(aggCache.byOfficeMonth).map(([k, v]) => [k, v[lastMonth] || 0]);
-            let sortedEntries;
-            if (isNpfTab) sortedEntries = entries.sort((a, b) => npfMode.branch === 'worst' ? b[1] - a[1] : a[1] - b[1]).slice(0, 5);
-            else if (isGeneralTab) sortedEntries = entries.sort((a, b) => generalMode.branch === 'top' ? b[1] - a[1] : a[1] - b[1]).slice(0, 5);
-            else sortedEntries = entries.sort((a, b) => b[1] - a[1]).slice(0, 5);
-            
-            const top5OfficeNames = sortedEntries.map(entry => entry[0]);
-            const officeTotals = {};
-            top5OfficeNames.forEach(name => officeTotals[name] = aggCache.byOfficeMonth[name]?.[lastMonth] || 0);
-            
-            const datasetBreakdown = distinctProducts.map(prod => {
-                return {
-                    label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
-                    data: top5OfficeNames.map(officeName => {
-                        let totalProd = aggCache.byOfficeMonth[officeName]?.products?.[prod]?.[lastMonth] || 0;
-                        if (viewMode.branch === 'percent') {
-                            const branchTotal = officeTotals[officeName];
-                            return branchTotal ? (totalProd / branchTotal) * 100 : 0;
-                        }
-                        return totalProd;
-                    }),
-                    backgroundColor: productColors[prod],
-                    barThickness: window.innerWidth < 768 ? 10 : 14
-                };
-            });
-            
-            if (charts.branch) charts.branch.destroy();
-            charts.branch = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: top5OfficeNames, datasets: datasetBreakdown },
-                options: {
-                    indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
-                    layout: { padding: { right: 30 } },
-                    plugins: {
-                        legend: getOutlineLegendConfig('branchChart', isDark),
-                        tooltip: { callbacks: { label: function(c) {
-                            let val = c.raw; let suffix = viewMode.branch === 'percent' ? '%' : '';
-                            let formattedVal = viewMode.branch === 'percent' ? val.toFixed(1) : formatChartValue(val, currentFileName);
-                            return c.dataset.label + ': ' + formattedVal + suffix;
-                        }}}
-                    },
-                    scales: {
-                        x: { stacked: true, display: false, grid: { display: false }, max: viewMode.branch === 'percent' ? 100 : undefined, grace: viewMode.branch === 'percent' ? '10%' : '5%' },
-                        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 }, color: textColor } }
-                    }
-                },
-                plugins: [{
-                    id: 'internal_bar_labels_instant',
-                    afterDatasetsDraw(chart) {
-                        const { ctx } = chart;
-                        let labelsToDraw = [];
-                        const isGeneralTab = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'haji.csv', 'qris.csv', 'mdin.csv', 'sli.csv'].includes(currentFileName);
-                        const isNpfTab = currentFileName === 'coll.csv';
-                        const isTargetFile = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'coll.csv'].includes(currentFileName);
-                        const isBottomMode = isGeneralTab ? generalMode.branch === 'bottom' : (isNpfTab ? npfMode.branch === 'bottom' : false);
-                        const forceTwoDecimals = isBottomMode && isTargetFile;
-                        const labelsCount = chart.data.labels.length;
-                        
-                        for (let i = 0; i < labelsCount; i++) {
-                            chart.data.datasets.forEach((ds, di) => {
-                                if (chart.isDatasetVisible(di)) {
-                                    const el = chart.getDatasetMeta(di).data[i];
-                                    const val = ds.data[i];
-                                    if (el && val >= 0) {
-                                        let txt = "", isSmallSegment = false;
-                                        if (viewMode.branch === 'percent') {
-                                            if (val > 0.5) { txt = Math.round(val) + '%'; if (val < 15) isSmallSegment = true; }
-                                        } else {
-                                            if (val > 0) txt = formatChartValue(val, currentFileName, forceTwoDecimals ? 1 : null);
-                                        }
-                                        if (txt !== "") {
-                                            const w = Math.abs(el.x - el.base);
-                                            const textWidth = ctx.measureText(txt).width;
-                                            let xPos = el.base + 4;
-                                            if (isSmallSegment && textWidth > w) xPos = el.base + ((w - textWidth) / 2);
-                                            else if (textWidth > w - 8) xPos = el.base + ((w - textWidth) / 2);
-                                            labelsToDraw.push({ text: txt, x: xPos, y: el.y, isSmall: isSmallSegment, width: textWidth });
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        
-                        labelsToDraw.sort((a, b) => (a.isSmall === b.isSmall) ? 0 : a.isSmall ? 1 : -1);
-                        ctx.save();
-                        ctx.font = 'bold 9px Inter, sans-serif'; ctx.textBaseline = 'middle';
-                        ctx.strokeStyle = '#000000'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
-                        labelsToDraw.forEach(lbl => { ctx.fillStyle = '#ffffff'; ctx.strokeText(lbl.text, lbl.x, lbl.y); ctx.fillText(lbl.text, lbl.x, lbl.y); });
-                        ctx.restore();
-                    }
-                }]
-            });
-        }
-
-        // OPTIMASI 7: Table Rendering dengan String Concat + Fragment
-        function updateTable() {
-            const tbody = document.getElementById('data-table-body');
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isBillionFormat = ['finbook.csv', 'finos.csv', 'funding.csv', 'priority.csv', 'coll.csv', 'sli.csv'].includes(currentFileName);
-
-            // --- LOGIKA MODE COMPARISON ---
-                if (isComparisonMode && comparisonData.length > 0) {
-                    const isNpfTab = currentFileName === 'coll.csv';
-                    // NPF: naik = buruk (merah), turun = bagus (hijau) — kebalikan dari tab lain
-                    const positiveClass = isNpfTab ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400';
-                    const negativeClass = isNpfTab ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400';
-
-                    let htmlBuffer = '';
-                    comparisonData.forEach((item) => {
-                    let m1Display = isBillionFormat ? formatToBillion(item.m1) : formatNumber(item.m1);
-                    let m2Display = isBillionFormat ? formatToBillion(item.m2) : formatNumber(item.m2);
-                    let gapDisplay = isBillionFormat ? formatToBillion(item.gap) : formatNumber(item.gap);
-                    
-                    let gapClass = item.gap >= 0 ? positiveClass : negativeClass;
-                    let growthDisplay = item.growth.toFixed(1) + '%';
-                    let growthClass = item.growth >= 0 ? positiveClass : negativeClass;
-
-                    htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-xs md:text-base">
-                        <td class="px-3 py-3 font-medium sticky-column"><span class="text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm">${item.branch}</span></td>
-                        <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate text-indigo-600 dark:text-indigo-400 font-semibold">${m1Display}</td>
-                        <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate text-emerald-600 dark:text-emerald-400 font-semibold">${m2Display}</td>
-                        <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate ${gapClass} font-bold">${gapDisplay}</td>
-                        <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate ${growthClass} font-bold">${growthDisplay}</td>
-                    </tr>`;
-                });
-                tbody.innerHTML = htmlBuffer;
-                return; // Stop rendering jika masih dalam mode comparison
-            }
-
-            // --- LOGIKA NORMAL (DIPANGGIL JIKA BUKAN MODE COMPARISON) ---
-            // Panggil buildDynamicTableHeader() untuk mengembalikan kolom produk/group asli
-            buildDynamicTableHeader(); 
-
-            const officeMap = {};
-            for (let i = 0; i < filteredData.length; i++) {
-                const row = filteredData[i];
-                const office = row['OFFICE-CLEAN'];
-                if (!office) continue;
-                if (!officeMap[office]) {
-                    officeMap[office] = { total: 0 };
-                    distinctProducts.forEach(p => officeMap[office][p] = 0);
-                }
-                const val = row[lastMonth] || 0;
-                const prod = row.PRODUCT;
-                if (officeMap[office][prod] !== undefined) officeMap[office][prod] += val;
-                officeMap[office].total += val;
-            }
-            
-            const sortedOffices = Object.entries(officeMap).map(([name, vals]) => ({ name, ...vals })).sort((a, b) => b.total - a.total);
-            let htmlBuffer = '';
-            
-            sortedOffices.forEach((item) => {
-                let productCellsHtml = '';
-                distinctProducts.forEach(prod => {
-                    let displayVal = item[prod] || 0;
-                    if (isBillionFormat) displayVal = formatToBillion(displayVal);
-                    else displayVal = formatNumber(displayVal);
-                    productCellsHtml += `<td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate" style="color: ${productColors[prod]};">${displayVal}</td>`;
-                });
-                
-                let totalDisplay = item.total;
-                if (isBillionFormat) totalDisplay = formatToBillion(totalDisplay);
-                else totalDisplay = formatNumber(totalDisplay);
-                
-                htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-xs md:text-base">
-                    <td class="px-3 py-3 font-medium sticky-column"><span class="text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm">${item.name}</span></td>
-                    ${productCellsHtml}
-                    <td class="px-3 py-3 text-center font-mono font-bold text-slate-800 dark:text-white text-xs md:text-sm">${totalDisplay}</td>
-                </tr>`;
-            });
-            tbody.innerHTML = htmlBuffer;
-        }
-
-        function animateNumber(element, targetValue, isPercentage = false) {
+        
+        function animateNumber(element, newValue) {
             if (!element) return;
-            const startValue = 0; const duration = 600; let startTime = null;
-            function animation(currentTime) {
-                if (!startTime) startTime = currentTime;
-                const progress = Math.min((currentTime - startTime) / duration, 1);
-                const easeProgress = progress * (2 - progress);
-                const currentValue = startValue + easeProgress * (targetValue - startValue);
-                if (isPercentage) element.innerText = currentValue.toFixed(1) + '%';
-                else element.innerText = formatNumber(currentValue);
-                if (progress < 1) requestAnimationFrame(animation);
-                else {
-                    if (isPercentage) element.innerText = targetValue.toFixed(1) + '%';
-                    else element.innerText = formatNumber(targetValue);
-                }
-            }
-            requestAnimationFrame(animation);
+            element.innerText = formatNumber(newValue);
         }
-
-        // --- EXPORT TO EXCEL LOGIC (UPDATED) ---
-        let exportFilterType = 'PRODUCT'; // Default
-        
-        function openExportModal() {
-            const modal = document.getElementById('export-modal');
-            // 1. Reset ke tipe default atau pertahankan terakhir
-            setExportFilterType(exportFilterType);
-            // 2. Populate Items sesuai Tab & Filter Aktif
-            populateExportItems();
-            // 3. Populate Months
-            const m1Select = document.getElementById('export-month-1');
-            const m2Select = document.getElementById('export-month-2');
-            m1Select.innerHTML = '';
-            m2Select.innerHTML = '';
-            monthColumns.forEach(m => {
-                m1Select.add(new Option(m, m));
-                m2Select.add(new Option(m, m));
-            });
-            // Set defaults (Latest and Previous)
-            if(monthColumns.length > 0) {
-                m1Select.value = monthColumns[monthColumns.length - 1];
-                m2Select.value = monthColumns.length > 1 ? monthColumns[monthColumns.length - 2] : monthColumns[0];
-            }
-            modal.classList.remove('hidden');
-        }
-
-        function closeExportModal() {
-            document.getElementById('export-modal').classList.add('hidden');
-        }
-
-        function setExportFilterType(type) {
-            exportFilterType = type;
-            const btnProd = document.getElementById('filter-type-prod');
-            const btnGrp = document.getElementById('filter-type-grp');
-            // Styling active button
-            const activeClass = "flex-1 py-2 text-xs font-medium rounded border border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500 transition-all";
-            const inactiveClass = "flex-1 py-2 text-xs font-medium rounded border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700 transition-all";
-            
-            if (type === 'PRODUCT') {
-                btnProd.className = activeClass;
-                btnGrp.className = inactiveClass;
-            } else {
-                btnProd.className = inactiveClass;
-                btnGrp.className = activeClass;
-            }
-            populateExportItems();
-        }
-
-        function populateExportItems() {
-            const select = document.getElementById('export-item-select');
-            select.innerHTML = '';
-            let items = [];
-            // LOGIKA BARU: Mengambil data dari variabel global yang sudah ter-filter oleh Tab/Sidebar
-            if (exportFilterType === 'PRODUCT') {
-                // distinctProducts diisi saat loadCSV berdasarkan file yang aktif
-                items = [...distinctProducts].sort();
-            } else {
-                // groupLabels diisi saat loadCSV berdasarkan file yang aktif
-                items = [...groupLabels].sort();
-            }
-            items.forEach(item => {
-                // Skip jika item kosong
-                if (!item) return;
-                const opt = document.createElement('option');
-                opt.value = item;
-                // Format tampilan nama (SME uppercase, replace underscore)
-                opt.innerText = item === "Sme" ? "SME" : item.replace(/_/g, ' ');
-                select.appendChild(opt);
-            });
-        }
-        
-        function moveTableUnderKPI() {
-            const contentArea = document.getElementById('dashboard-content');
-            const tableCard = document.getElementById('table-card-container');
-            if (contentArea && tableCard) {
-                // Pindahkan jadi child pertama di dalam content area = tepat di bawah KPI (sticky)
-                contentArea.insertBefore(tableCard, contentArea.firstElementChild);
-                tableCard.classList.remove('mt-4', 'md:mt-6');
-                tableCard.classList.add('mb-4', 'md:mb-6');
-            }
-        }
-        
-        function restoreTableOriginalPosition() {
-            const placeholder = document.getElementById('table-position-placeholder');
-            const tableCard = document.getElementById('table-card-container');
-            if (placeholder && tableCard) {
-                placeholder.parentNode.insertBefore(tableCard, placeholder.nextSibling);
-                tableCard.classList.remove('mb-4', 'md:mb-6');
-                tableCard.classList.add('mt-4', 'md:mt-6');
-            }
-        }
-        
-        function displayComparisonTable() {
-            const selectedItem = document.getElementById('export-item-select').value;
-            const month1 = document.getElementById('export-month-1').value;
-            const month2 = document.getElementById('export-month-2').value;
-
-            if (!selectedItem || !month1 || !month2) {
-                alert("Please select all fields");
-                return;
-            }
-
-            // Gunakan filteredData untuk memastikan kita hanya mengexport branch yang sesuai filter sidebar
-            const branchMap = {};
-            
-            filteredData.forEach(row => {
-                const branch = row['OFFICE-CLEAN'];
-                if (!branch) return;
-                
-                if (!branchMap[branch]) {
-                    branchMap[branch] = { valM1: 0, valM2: 0 };
-                }
-
-                let addVal = 0;
-                // Logika filtering berdasarkan Product atau Group
-                if (exportFilterType === 'PRODUCT') {
-                    if (row.PRODUCT === selectedItem) {
-                        let v1 = row[month1];
-                        let v2 = row[month2];
-                        if (typeof v1 === 'string') v1 = parseFloat(v1.replace(/\./g,'').replace(/,/g,'.')) || 0;
-                        if (typeof v2 === 'string') v2 = parseFloat(v2.replace(/\./g,'').replace(/,/g,'.')) || 0;
-                        branchMap[branch].valM1 += (v1 || 0);
-                        branchMap[branch].valM2 += (v2 || 0);
-                    }
-                } else {
-                    if (row.GROUP === selectedItem) {
-                        let v1 = row[month1];
-                        let v2 = row[month2];
-                        if (typeof v1 === 'string') v1 = parseFloat(v1.replace(/\./g,'').replace(/,/g,'.')) || 0;
-                        if (typeof v2 === 'string') v2 = parseFloat(v2.replace(/\./g,'').replace(/,/g,'.')) || 0;
-                        branchMap[branch].valM1 += (v1 || 0);
-                        branchMap[branch].valM2 += (v2 || 0);
-                    }
-                }
-            });
-
-            // Siapkan Data Array untuk Tabel
-            comparisonData = [];
-            const sortedBranches = Object.keys(branchMap).sort((a,b) => branchMap[b].valM1 - branchMap[a].valM1);
-            
-            sortedBranches.forEach(branchName => {
-                const data = branchMap[branchName];
-                const valM1 = data.valM1;
-                const valM2 = data.valM2;
-                const gap = valM1 - valM2;
-                let growthPct = 0;
-                
-                if (valM2 !== 0) {
-                    growthPct = (gap / valM2) * 100;
-                } else if (valM1 > 0) {
-                    growthPct = 100;
-                }
-
-                comparisonData.push({
-                    branch: branchName,
-                    m1: valM1,
-                    m2: valM2,
-                    gap: gap,
-                    growth: growthPct
-                });
-            });
-
-            // Aktifkan Mode Comparison
-            isComparisonMode = true;
-            moveTableUnderKPI();
-            
-            // Simpan info untuk re-render header saat sorting
-            window.lastExportItemName = selectedItem;
-            window.lastExportMonth1 = month1;
-            window.lastExportMonth2 = month2;
-            
-            // Apply sort default (Month 1, descending) — sudah urut dari proses awal,
-            // tapi reset state agar konsisten setiap buka comparison baru
-            comparisonSortState = { column: 'm1', direction: 'desc' };
-            
-            // Update Header Tabel secara Dinamis
-            updateComparisonHeader(selectedItem, month1, month2);
-
-            // Render Tabel
-            updateTable();
-            
-            // Tutup Modal
-            closeExportModal();
-
-            // AUTO SCROLL KE TABEL (dengan kompensasi tinggi sticky header + KPI)
-            setTimeout(() => {
-                const tableContainer = document.getElementById('table-card-container');
-                const mainContent = document.getElementById('main-content');
-                const mainHeader = document.getElementById('main-header');
-                const kpiContainer = document.getElementById('kpi-container');
-                
-                if (tableContainer && mainContent) {
-                    const stickyOffset = (mainHeader ? mainHeader.offsetHeight : 0) + (kpiContainer ? kpiContainer.offsetHeight : 0);
-                    const extraGap = 12; // jarak tambahan biar tidak terlalu mepet
-                    const targetTop = tableContainer.offsetTop - stickyOffset - extraGap;
-                    
-                    mainContent.scrollTo({ top: targetTop, behavior: 'smooth' });
-                }
-            }, 100);
-        }
-
-        window.sortComparisonTable = function(column) {
-            if (comparisonSortState.column === column) {
-                // Kolom sama, balik arah
-                comparisonSortState.direction = comparisonSortState.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                // Kolom baru, default descending (kecuali branch = ascending/alfabet)
-                comparisonSortState.column = column;
-                comparisonSortState.direction = column === 'branch' ? 'asc' : 'desc';
-            }
-            
-            comparisonData.sort((a, b) => {
-                let valA = a[column];
-                let valB = b[column];
-                
-                if (column === 'branch') {
-                    valA = valA.toLowerCase();
-                    valB = valB.toLowerCase();
-                    return comparisonSortState.direction === 'asc' 
-                        ? valA.localeCompare(valB) 
-                        : valB.localeCompare(valA);
-                } else {
-                    return comparisonSortState.direction === 'asc' ? valA - valB : valB - valA;
-                }
-            });
-            
-            updateComparisonHeader(window.lastExportItemName, window.lastExportMonth1, window.lastExportMonth2);
-            updateTable();
-        }        
-
-        function getSortIcon(column) {
-            if (comparisonSortState.column !== column) {
-                return '<i class="fa-solid fa-sort text-slate-300 dark:text-slate-600 ml-1"></i>';
-            }
-            return comparisonSortState.direction === 'asc'
-                ? '<i class="fa-solid fa-sort-up text-indigo-500 ml-1"></i>'
-                : '<i class="fa-solid fa-sort-down text-indigo-500 ml-1"></i>';
-        }
-
-        function updateComparisonHeader(itemName, m1, m2) {
-            const headerRow = document.getElementById('dynamic-table-header-row');
-            const displayName = itemName === "Sme" ? "SME" : itemName.replace(/_/g, ' ');
-            const sortableTh = "cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors";
-            
-            let headerHtml = `<th scope="col" onclick="sortComparisonTable('branch')" class="px-2 py-2 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate ${sortableTh}">Branch${getSortIcon('branch')}</th>`;
-            
-            // Kolom M1
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('m1')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-indigo-600 dark:text-indigo-400 ${sortableTh}">${m1}${getSortIcon('m1')}</th>`;
-            
-            // Kolom M2
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('m2')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-emerald-600 dark:text-emerald-400 ${sortableTh}">${m2}${getSortIcon('m2')}</th>`;
-            
-            // Kolom Gap
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('gap')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-slate-600 dark:text-slate-300 ${sortableTh}">Gap${getSortIcon('gap')}<br><span class="text-[8px] text-slate-400 font-normal">${m1} vs ${m2}</span></th>`;
-            
-            // Kolom Growth %
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('growth')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-blue-600 dark:text-blue-400 ${sortableTh}">Growth %${getSortIcon('growth')}</th>`;
-            
-            headerRow.innerHTML = headerHtml;
-            
-            // Update Title Tabel
-            document.getElementById('table-title').innerText = `COMPARISON DATA ${displayName.toUpperCase()} BETWEEN ${m1.toUpperCase()} AND ${m2.toUpperCase()}`;
-        }
-
-        function captureTable() {
-            // Cek apakah library sudah dimuat
-            if (typeof html2canvas === 'undefined') {
-                alert("Library screenshot belum siap. Silakan refresh halaman.");
-                return;
-            }
-
-            const tableContainer = document.getElementById('table-card-container');
-            const btn = event.currentTarget;
-            
-            // Simpan state tombol asli
-            const originalContent = btn.innerHTML;
-            const originalDisabled = btn.disabled;
-            
-            // Ubah tombol jadi loading state
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            btn.disabled = true;
-
-            // Deteksi tema saat ini untuk background canvas
-            const isDark = document.documentElement.classList.contains('dark');
-            const bgColor = isDark ? '#1e293b' : '#ffffff'; // dark-card color / white
-
-            // Konfigurasi html2canvas yang aman untuk tabel kompleks
-            const options = {
-                scale: 2, // Resolusi tinggi (2x) agar teks tajam
-                useCORS: true, // Izinkan gambar cross-origin jika ada
-                backgroundColor: bgColor, // Pastikan background tidak transparan
-                logging: false,
-                windowWidth: tableContainer.scrollWidth,
-                windowHeight: tableContainer.scrollHeight,
-                ignoreElements: (element) => {
-                    // Abaikan tombol capture itu sendiri agar tidak ikut ter-capture
-                    return element === btn;
-                }
-            };
-
-            html2canvas(tableContainer, options)
-                .then(canvas => {
-                    // Buat link download
-                    const link = document.createElement('a');
-                    const timestamp = new Date().toISOString().slice(0, 10);
-                    link.download = `Table_Capture_${timestamp}.png`;
-                    link.href = canvas.toDataURL("image/png", 1.0);
-                    link.click();
-                    
-                    // Kembalikan tombol
-                    btn.innerHTML = originalContent;
-                    btn.disabled = originalDisabled;
-                })
-                .catch(err => {
-                    console.error("Capture Error:", err);
-                    alert("Gagal mengambil screenshot: " + err.message);
-                    btn.innerHTML = originalContent;
-                    btn.disabled = originalDisabled;
-                });
-        }
-        // 1. Hapus nilai penyimpanan tema lama di browser
-        localStorage.removeItem('theme');
-        localStorage.removeItem('color-theme');
-        
-        // 2. Paksa elemen HTML menggunakan class/attribute light mode
-        document.documentElement.classList.remove('dark');
-        document.documentElement.setAttribute('data-theme', 'light');
+        function updateCharts() {}
+        function updateTrendChart() {}
+        function updateCompositionChart() {}
+        function updateCoBranchChart() {}
+        function updateBranchChart() {}
+        function updateTable() {}
+        function restoreTableOriginalPosition() {}
+        function captureTable() {}
+        function openExportModal() {}
     </script>
-
-    <!-- EXPORT MODAL -->
-    <div id="export-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all scale-100">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
-                <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-table text-emerald-600"></i> Display Data Comparison
-                </h3>
-                <button onclick="closeExportModal()" class="text-slate-400 hover:text-red-500 transition-colors">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <div class="p-5 space-y-4">
-                <!-- Filter Type -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Filter By</label>
-                    <div class="flex gap-2">
-                        <button id="filter-type-prod" onclick="setExportFilterType('PRODUCT')" class="flex-1 py-2 text-xs font-medium rounded border border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500 transition-all">Product</button>
-                        <button id="filter-type-grp" onclick="setExportFilterType('GROUP')" class="flex-1 py-2 text-xs font-medium rounded border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700 transition-all">Group</button>
-                    </div>
-                </div>
-                <!-- Select Item -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Select Item</label>
-                    <select id="export-item-select" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
-                        <!-- Options populated by JS -->
-                    </select>
-                </div>
-                <!-- Month Comparison -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Month 1 (Base)</label>
-                        <select id="export-month-1" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
-                            <!-- Options populated by JS -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Month 2 (Compare)</label>
-                        <select id="export-month-2" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
-                            <!-- Options populated by JS -->
-                        </select>
-                    </div>
-                </div>
-                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
-                    <i class="fa-solid fa-circle-info mt-0.5"></i>
-                    <span>Data perbandingan akan ditampilkan langsung di tabel utama dashboard.</span>
-                </div>
-            </div>
-            <div class="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-end gap-2">
-                <button onclick="closeExportModal()" class="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors">Cancel</button>
-                <button onclick="displayComparisonTable()" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-md transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-table"></i> Display Table
-                </button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
