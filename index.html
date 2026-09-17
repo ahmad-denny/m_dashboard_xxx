@@ -252,6 +252,7 @@
             </div>
             <!-- User Info Card (Khusus Mobile) -->
             <div class="md:hidden mb-4">
+                <!-- Background, Border, dan Shadow yang responsif tema -->
                 <div class="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700/60 rounded-2xl p-3.5 shadow-sm">
                     <div class="flex items-center gap-3">
                         <!-- Avatar Bulat Biru -->
@@ -259,9 +260,9 @@
                             A
                         </div>
                         <div class="leading-tight min-w-0">
-                            <!-- Teks Nama -->
+                            <!-- Teks Nama: Hitam di Light Mode, Putih di Dark Mode -->
                             <p id="userNameSidebar" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">AHMAD DENNY</p>
-                            <!-- Teks Posisi -->
+                            <!-- Teks Posisi: Abu-abu Soft di kedua mode -->
                             <p id="userPosSidebar" class="text-[11px] font-medium text-slate-400 dark:text-slate-400 truncate mt-0.5">RBPM - REGION</p>
                         </div>
                     </div>
@@ -689,7 +690,7 @@
         
             buildCSVTabs();
             loadSelectedCSV(currentActiveFileIndex);
-        });
+        });      
         
         // --- STATE MANAGEMENT ---
         window.customLegendStates = window.customLegendStates || {};
