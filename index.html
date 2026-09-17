@@ -661,7 +661,7 @@
         });
 
         // Data dashboard baru dimuat setelah auth gate (index2.html) memvalidasi sesi
-        window.addEventListener('authReady', (e) => {
+        document.addEventListener('authReady', (e) => {
             const user = e.detail?.user;
             if (!user) return;
         
