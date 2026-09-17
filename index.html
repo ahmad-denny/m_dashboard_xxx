@@ -311,16 +311,17 @@
                 <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                 </button>
-                <div class="hidden sm:flex items-center gap-2.5 p-1.5 pr-4 rounded-full bg-transparent dark:bg-slate-800 user-info-reference">
-                    <img id="sidebar-user-avatar" src="https://ui-avatars.com/api/?name=AD&background=6366f1&color=fff" alt="User" class="w-9 h-9 rounded-full shrink-0">
-                    <div class="min-w-0 hidden md:block">
-                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 tracking-wide uppercase truncate" id="sidebar-user-name">AHMAD DENNY</p>
-                        <div class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-                            <span id="sidebar-user-position">RBPM •</span>
-                            <span class="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-wider border border-emerald-100 dark:border-emerald-800/50" id="sidebar-user-location">REGION</span>
+                    <div id="userInfoChip" class="hidden md:flex user-info-reference">
+                        <div id="userAvatarCircle" class="user-avatar-reference">U</div>
+                        <div class="user-meta-reference">
+                            <p id="userNameChip" class="user-name-reference">-</p>
+                            <div class="user-detail-reference">
+                                <span id="userPosChip" class="user-role-reference">-</span>
+                                <span class="user-separator-reference">•</span>
+                                <span id="userLocChip" class="user-location-reference">-</span>
+                            </div>
                         </div>
                     </div>
-                </div>
             </div>
         </header>
 
@@ -670,44 +671,48 @@
         });
 
         // Data dashboard baru dimuat setelah auth gate (index2.html) memvalidasi sesi
-        document.addEventListener('authReady', (e) => {
-            const user = e.detail;
+        document.addEventListener('authReady', function (e) {
+            var user = e.detail;
             if (user) {
-                // Elemen Desktop
-                const nameEl = document.getElementById('sidebar-user-name');
-                const posTextEl = document.getElementById('sidebar-user-position');
-                const locBadgeEl = document.getElementById('sidebar-user-location');
-                const avatarEl = document.getElementById('sidebar-user-avatar');
-        
-                // Elemen Mobile Card
-                const mobileNameEl = document.getElementById('userNameSidebar');
-                const mobilePosEl = document.getElementById('userPosSidebar');
-                const mobileAvatarEl = document.getElementById('userAvatarSidebar');
-        
-                const displayName = user.nama || 'User';
-                const userPos = user.posisi || '-';
-                const userLoc = user.lokasi || user.region || user.cabang || '';
-                const displayPos = userLoc ? `${userPos} - ${userLoc}` : userPos;
-        
-                // Populate Desktop
-                if (nameEl) nameEl.textContent = displayName;
-                if (posTextEl) posTextEl.textContent = `${userPos} •`;
-                if (locBadgeEl) locBadgeEl.textContent = userLoc ? userLoc.toUpperCase() : '-';
+                var displayName = user.nama || 'User';
                 
-                const nameParts = displayName.trim().split(/\s+/);
-                const avatarName = nameParts.slice(0, 2).join(' ');
+                var userPos = user.posisi || '-';
+                var userLoc = user.lokasi || user.region || user.cabang || '';
+                var displayPos = userPos;
 
-                if (avatarEl) {
-                    avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=4f46e5&color=fff`;
+                function getInitials(name) {
+                    if (!name) return 'U';
+                    var parts = name.trim().split(/\s+/);
+                    if (parts.length >= 2) {
+                        return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+                    }
+                    return parts[0].substring(0, 2).toUpperCase();
                 }
-        
-                // Populate Mobile Card
-                if (mobileNameEl) mobileNameEl.textContent = displayName;
-                if (mobilePosEl) mobilePosEl.textContent = displayPos;
-                if (mobileAvatarEl) {
-                    mobileAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+
+                var initials = getInitials(displayName);
+
+                // Update Desktop Header Chips
+                var nameEl = document.getElementById('userNameChip');
+                var posEl = document.getElementById('userPosChip');
+                var locEl = document.getElementById('userLocChip');
+                var avatarEl = document.getElementById('userAvatarCircle');
+                if (nameEl) nameEl.textContent = displayName;
+                if (posEl) posEl.textContent = displayPos;
+                if (locEl) {
+                    locEl.textContent = userLoc || '-';
+                    locEl.style.display = userLoc ? 'inline-flex' : 'none';
                 }
+                if (avatarEl) avatarEl.textContent = initials;
+
+                // Update Sidebar User Info
+                var nameSide = document.getElementById('userNameSidebar');
+                var posSide = document.getElementById('userPosSidebar');
+                var avatarSide = document.getElementById('userAvatarSidebar');
+                if (nameSide) nameSide.textContent = displayName;
+                if (posSide) posSide.textContent = displayPos;
+                if (avatarSide) avatarSide.textContent = initials;
             }
+
         
             buildCSVTabs();
             loadSelectedCSV(currentActiveFileIndex);
