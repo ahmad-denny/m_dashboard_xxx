@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light h-full overflow-hidden">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -29,18 +29,6 @@
                             border: '#334155',
                             text: '#f1f5f9',
                             subtext: '#94a3b8'
-                        },
-                        muamalat: {
-                            50: '#F5F1FB',
-                            100: '#EAE1F7',
-                            200: '#D3C0EE',
-                            300: '#B99FE3',
-                            400: '#9F7ED8',
-                            500: '#7F5AC2',
-                            600: '#6441A5',
-                            700: '#4F3184',
-                            800: '#3B2463',
-                            900: '#281745'
                         }
                     },
                     fontFamily: {
@@ -53,10 +41,6 @@
 
     <!-- Custom Styles -->
     <style>
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
@@ -89,7 +73,7 @@
         
         .loader {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #6441A5;
+            border-top: 4px solid #4f46e5;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -120,7 +104,7 @@
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
                 min-width: 110px !important; max-width: 130px !important;
             }
-            #dashboard-content { overflow-y: auto !important; }
+            #main-content { overflow-y: auto !important; }
             .mobile-compact-p { padding: 0.5rem !important; }
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
         }
@@ -145,8 +129,8 @@
         .dark .bg-mom-neutral { background-color: #334155; color: #cbd5e1; }
         .bg-ytd-negative { background-color: #fee2e2; color: #991b1b; }
         .dark .bg-ytd-negative { background-color: #7f1d1d; color: #fecaca; }
-        .bg-ytd-default { background-color: #EAE1F7; color: #3B2463; }
-        .dark .bg-ytd-default { background-color: #281745; color: #D3C0EE; }
+        .bg-ytd-default { background-color: #e0e7ff; color: #3730a3; }
+        .dark .bg-ytd-default { background-color: #312e81; color: #c7d2fe; }
         
         /* Force Chart Legend Colors */
         .chartjs-legend li span,
@@ -336,17 +320,17 @@
 
     <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-white dark:bg-dark-card text-slate-700 dark:text-slate-200 flex flex-col shadow-2xl md:shadow-sm border-r border-slate-100 dark:border-dark-border z-[60] sidebar-transition h-[100dvh] transition-colors duration-300">
-        <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-muamalat-600 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-muamalat-500 z-30 focus:outline-none">
+        <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-600 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-500 z-30 focus:outline-none">
             <i class="fa-solid fa-chevron-left text-xs transition-transform" id="toggle-icon"></i>
         </button>
         <button id="sidebar-close-mobile" class="md:hidden absolute right-4 top-5 text-slate-400 hover:text-slate-700 dark:hover:text-white text-lg p-2 focus:outline-none z-50">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="h-[53px] md:h-[61px] px-4 flex items-center gap-3 border-b border-slate-100 dark:border-dark-border nav-header">
+        <div class="p-4 flex items-center gap-3 border-b border-slate-100 dark:border-dark-border nav-header">
             <div style="padding: 0px; text-align: center;">
-                <img src="img/BMI.png" alt="Logo" width="32" height="32" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-building-columns text-2xl text-muamalat-600 dark:text-muamalat-400\'></i>'">
+                <img src="img/BMI.png" alt="Logo" width="32" height="32" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-building-columns text-2xl text-indigo-600 dark:text-indigo-400\'></i>'">
             </div>
-            <h1 class="font-bold text-sm tracking-wide logo-text leading-tight text-slate-800 dark:text-white">Performance<br><span class="text-muamalat-600 dark:text-muamalat-400">Region Sumatera</span></h1>
+            <h1 class="font-bold text-sm tracking-wide logo-text leading-tight text-slate-800 dark:text-white">Performance<br><span class="text-indigo-600 dark:text-indigo-400">Region Sumatera</span></h1>
         </div>
         <nav class="flex-1 p-3 space-y-5 overflow-y-auto custom-scrollbar pb-6">
             <div>
@@ -364,7 +348,7 @@
             <!-- User Info Card (Khusus Mobile) -->
             <div class="md:hidden mb-4">
                 <!-- Background, Border, dan Shadow yang responsif tema -->
-                <div class="bg-white dark:bg-slate-800 border border-muamalat-100 dark:border-slate-700/60 rounded-2xl p-3.5 shadow-sm">
+                <div class="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700/60 rounded-2xl p-3.5 shadow-sm">
                     <div class="flex items-center gap-3">
                         <!-- Avatar Bulat Biru -->
                         <div id="userAvatarSidebar" class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
@@ -383,15 +367,15 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-full w-full relative overflow-hidden bg-[#f8fafc] dark:bg-dark-bg transition-colors duration-300" id="main-content">
-        <header class="bg-white dark:bg-dark-card border-b border-slate-200 dark:border-dark-border flex items-center justify-between px-3 md:px-6 shrink-0 py-2.5 z-30 shadow-sm w-full transition-colors duration-300 gap-2" id="main-header">
+    <main class="flex-1 flex flex-col h-full w-full relative overflow-y-auto bg-[#f8fafc] dark:bg-dark-bg transition-colors duration-300" id="main-content">
+        <header class="bg-white dark:bg-dark-card border-b border-slate-200 dark:border-dark-border flex items-center justify-between px-3 md:px-6 shrink-0 py-2.5 sticky top-0 z-30 shadow-sm w-full transition-colors duration-300 gap-2" id="main-header">
             <div class="flex items-center gap-2 min-w-0">
                 <button id="mobile-menu-btn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-1 -ml-2 focus:outline-none flex items-center justify-center shrink-0">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="min-w-0">
                     <h2 class="text-sm md:text-lg font-semibold text-slate-800 dark:text-white truncate" id="dashboard-main-title">Performance Analytics</h2>
-                    <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 truncate">As of <span class="font-medium text-muamalat-600 dark:text-muamalat-400" id="header-as-of">-</span></p>
+                    <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 truncate">As of <span class="font-medium text-indigo-600 dark:text-indigo-400" id="header-as-of">-</span></p>
                 </div>
             </div>
             <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
@@ -401,10 +385,10 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
+                <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
                     <option value="">Loading...</option>
                 </select>
-                <button onclick="resetFilters()" title="Reset" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
+                <button onclick="resetFilters()" title="Reset" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-rotate-right sm:mr-1"></i> <span class="hidden sm:inline">Reset</span>
                 </button>
                 <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
@@ -428,10 +412,10 @@
         </header>
 
         <!-- KPI CONTAINER -->
-        <div class="shrink-0 z-40 bg-[#f8fafc] dark:bg-dark-bg px-3 md:px-6 pt-3 md:pt-6 pb-2 border-b border-transparent shadow-sm transition-colors duration-300" id="kpi-container">
+        <div class="sticky top-[53px] md:top-[61px] z-40 bg-[#f8fafc] dark:bg-dark-bg px-3 md:px-6 pt-2 pb-2 border-b border-slate-200/60 dark:border-dark-border shadow-sm transition-colors duration-300" id="kpi-container">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
                 <!-- Card 1 -->
-                <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-muamalat-500 min-w-0 transition-colors duration-300">
+                <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-indigo-500 min-w-0 transition-colors duration-300">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate" id="kpi-total-label">OUTSTANDING TOTAL</p>
@@ -446,7 +430,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-1 bg-muamalat-50 dark:bg-muamalat-900/30 rounded text-muamalat-600 dark:text-muamalat-400 text-xs shrink-0">
+                        <div class="p-1 bg-indigo-50 dark:bg-indigo-900/30 rounded text-indigo-600 dark:text-indigo-400 text-xs shrink-0">
                             <i class="fa-solid fa-calculator"></i>
                         </div>
                     </div>
@@ -530,7 +514,7 @@
         </div>
 
         <!-- CONTENT AREA -->
-        <div class="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-6" id="dashboard-content">
+        <div class="p-3 md:p-6 space-y-3 md:space-y-6" id="dashboard-content">
             <div id="charts-wrapper" class="space-y-3 md:space-y-6 mb-4 md:mb-6">
                 <!-- ROW 1: TREND CHART & COMPOSITION CHART (1 BARIS) -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
@@ -544,17 +528,17 @@
                                     <button onclick="setPresetTimeline(3)" id="btn-time-3" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">3M</button>
                                     <button onclick="setPresetTimeline(6)" id="btn-time-6" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">6M</button>
                                     <button onclick="setPresetTimeline(12)" id="btn-time-12" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">12M</button>
-                                    <button onclick="setPresetTimeline(0)" id="btn-time-all" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">All</button>
+                                    <button onclick="setPresetTimeline(0)" id="btn-time-all" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">All</button>
                                 </div>
                                 <!-- Separator -->
                                 <div class="hidden sm:block w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1"></div>
                                 <!-- Custom Range Selectors -->
                                 <div class="flex items-center gap-1 text-[10px]">
-                                    <select id="trend-start-month" onchange="applyCustomTimeline()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-1 py-0.5 focus:outline-none focus:border-muamalat-500 cursor-pointer">
+                                    <select id="trend-start-month" onchange="applyCustomTimeline()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-1 py-0.5 focus:outline-none focus:border-indigo-500 cursor-pointer">
                                         <option value="">Start</option>
                                     </select>
                                     <span class="text-slate-400">to</span>
-                                    <select id="trend-end-month" onchange="applyCustomTimeline()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-1 py-0.5 focus:outline-none focus:border-muamalat-500 cursor-pointer">
+                                    <select id="trend-end-month" onchange="applyCustomTimeline()" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-1 py-0.5 focus:outline-none focus:border-indigo-500 cursor-pointer">
                                         <option value="">End</option>
                                     </select>
                                 </div>
@@ -570,7 +554,7 @@
                             <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="mix-chart-title">Product Distribution</h3>
                             <!-- Toggle View Mode (Value/%) untuk Donut Chart -->
                             <div class="inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-1">
-                                <button onclick="setCompViewMode('value')" id="btn-comp-value" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Value</button>
+                                <button onclick="setCompViewMode('value')" id="btn-comp-value" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Value</button>
                                 <button onclick="setCompViewMode('percent')" id="btn-comp-percent" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">%</button>
                             </div>
                         </div>
@@ -589,19 +573,19 @@
                             <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="co-branch-title">Top 5 CO-Branches</h3>
                             <!-- Toggle View Mode (Value/%) -->
                             <div id="view-toggle-co" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-1 mr-2">
-                                <button onclick="setViewMode('co', 'value')" id="btn-view-value-co" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Value</button>
+                                <button onclick="setViewMode('co', 'value')" id="btn-view-value-co" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Value</button>
                                 <button onclick="setViewMode('co', 'percent')" id="btn-view-percent-co" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">%</button>
                             </div>
                             <!-- Toggle NPF Mode -->
                             <div id="npf-toggle-co" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-2">
                                 <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Co-Branch</span>
-                                <button onclick="setNpfMode('co', 'worst')" id="btn-npf-worst-co" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Worst 5</button>
+                                <button onclick="setNpfMode('co', 'worst')" id="btn-npf-worst-co" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Worst 5</button>
                                 <button onclick="setNpfMode('co', 'best')" id="btn-npf-best-co" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">Best 5</button>
                             </div>
                             <!-- Toggle General Mode -->
                             <div id="general-toggle-co" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-2">
                                 <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Co-Branch</span>
-                                <button onclick="setGeneralMode('co', 'top')" id="btn-general-top-co" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Top 5</button>
+                                <button onclick="setGeneralMode('co', 'top')" id="btn-general-top-co" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Top 5</button>
                                 <button onclick="setGeneralMode('co', 'bottom')" id="btn-general-bottom-co" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">Bottom 5</button>
                             </div>
                         </div>
@@ -615,19 +599,19 @@
                             <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="branch-title">Top 5 Branches</h3>
                             <!-- Toggle View Mode (Value/%) -->
                             <div id="view-toggle-branch" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-1 mr-2">
-                                <button onclick="setViewMode('branch', 'value')" id="btn-view-value-branch" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Value</button>
+                                <button onclick="setViewMode('branch', 'value')" id="btn-view-value-branch" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Value</button>
                                 <button onclick="setViewMode('branch', 'percent')" id="btn-view-percent-branch" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">%</button>
                             </div>
                             <!-- Toggle NPF Mode -->
                             <div id="npf-toggle-branch" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-2">
                                 <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Branch</span>
-                                <button onclick="setNpfMode('branch', 'worst')" id="btn-npf-worst-branch" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Worst 5</button>
+                                <button onclick="setNpfMode('branch', 'worst')" id="btn-npf-worst-branch" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Worst 5</button>
                                 <button onclick="setNpfMode('branch', 'best')" id="btn-npf-best-branch" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">Best 5</button>
                             </div>
                             <!-- Toggle General Mode -->
                             <div id="general-toggle-branch" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5 items-center gap-2">
                                 <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300">Branch</span>
-                                <button onclick="setGeneralMode('branch', 'top')" id="btn-general-top-branch" class="px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all">Top 5</button>
+                                <button onclick="setGeneralMode('branch', 'top')" id="btn-general-top-branch" class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Top 5</button>
                                 <button onclick="setGeneralMode('branch', 'bottom')" id="btn-general-bottom-branch" class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">Bottom 5</button>
                             </div>
                         </div>
@@ -643,7 +627,7 @@
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="table-title">Detailed Breakdown</h3>
                     <!-- TOMBOL CAPTURE BARU -->
-                    <button onclick="captureTable()" class="px-2 py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center gap-1">
+                    <button onclick="captureTable()" class="px-2 py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center gap-1">
                         <i class="fa-solid fa-camera"></i> Capture
                     </button>
                 </div>
@@ -910,7 +894,7 @@
             const prefix = chartType === 'co' ? 'co' : 'branch';
             const btnWorst = document.getElementById(`btn-npf-worst-${prefix}`);
             const btnBest = document.getElementById(`btn-npf-best-${prefix}`);
-            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
             const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
             
             if (mode === 'worst') {
@@ -929,7 +913,7 @@
             const prefix = chartType === 'co' ? 'co' : 'branch';
             const btnTop = document.getElementById(`btn-general-top-${prefix}`);
             const btnBottom = document.getElementById(`btn-general-bottom-${prefix}`);
-            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
             const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
             
             if (mode === 'top') {
@@ -948,7 +932,7 @@
             const prefix = chartType === 'co' ? 'co' : 'branch';
             const btnValue = document.getElementById(`btn-view-value-${prefix}`);
             const btnPercent = document.getElementById(`btn-view-percent-${prefix}`);
-            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
             const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
             
             if (mode === 'value') {
@@ -966,7 +950,7 @@
             compViewMode = mode;
             const btnValue = document.getElementById('btn-comp-value');
             const btnPercent = document.getElementById('btn-comp-percent');
-            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
             const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
             
             if (mode === 'value') {
@@ -1017,7 +1001,7 @@
             return colors;
         }
 
-        const csvTabActiveClass = 'bg-muamalat-50 dark:bg-muamalat-900/30 text-muamalat-600 dark:text-muamalat-400 font-semibold';
+        const csvTabActiveClass = 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold';
         const csvTabInactiveClass = 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-700 dark:hover:text-slate-200';
 
         function buildCSVTabs() {
@@ -1336,7 +1320,7 @@
                 const wrapper = document.createElement('div'); wrapper.className = "mb-1";
                 
                 const select = document.createElement('select');
-                select.className = "w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs rounded-lg block p-1.5 focus:border-muamalat-500 focus:outline-none";
+                select.className = "w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs rounded-lg block p-1.5 focus:border-indigo-500 focus:outline-none";
                 select.id = `filter-${col}`;
                 
                 const defaultOpt = document.createElement('option'); defaultOpt.value = "ALL";
@@ -1577,7 +1561,7 @@
             activeTimelineMonths = months;
             
             const ids = { 0: 'btn-time-all', 3: 'btn-time-3', 6: 'btn-time-6', 12: 'btn-time-12' };
-            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
             const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
             
             Object.entries(ids).forEach(([m, id]) => {
@@ -1616,7 +1600,7 @@
             Object.entries(ids).forEach(([m, id]) => {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    if (parseInt(m) === 0) btn.className = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+                    if (parseInt(m) === 0) btn.className = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
                     else btn.className = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
                 }
             });
@@ -2135,7 +2119,7 @@
                 last5Months.reverse();
                 labels = last5Months;
                 dataValues = last5Months.map(month => aggCache.grandTotalMonth[month] || 0);
-                backgroundColors = ['#6441A5', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'];
+                backgroundColors = ['#4f46e5', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'];
             } else if (currentFileName === "qris.csv") {
                 document.getElementById('dynamic-group-pct-labels').style.display = 'none';
                 document.getElementById('mix-chart-title').innerText = "Product Acquisition";
@@ -2191,12 +2175,12 @@
                 
                 if (isNpfTab) {
                     const btnWorst = document.getElementById('btn-npf-worst-co'); const btnBest = document.getElementById('btn-npf-best-co');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
                     const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
                     if (npfMode.co === 'worst') { btnWorst.className = active; btnBest.className = inactive; } else { btnWorst.className = inactive; btnBest.className = active; }
                 } else {
                     const btnTop = document.getElementById('btn-general-top-co'); const btnBottom = document.getElementById('btn-general-bottom-co');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
                     const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
                     if (generalMode.co === 'top') { btnTop.className = active; btnBottom.className = inactive; } else { btnTop.className = inactive; btnBottom.className = active; }
                 }
@@ -2323,12 +2307,12 @@
                 
                 if (isNpfTab) {
                     const btnWorst = document.getElementById('btn-npf-worst-branch'); const btnBest = document.getElementById('btn-npf-best-branch');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
                     const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
                     if (npfMode.branch === 'worst') { btnWorst.className = active; btnBest.className = inactive; } else { btnWorst.className = inactive; btnBest.className = active; }
                 } else {
                     const btnTop = document.getElementById('btn-general-top-branch'); const btnBottom = document.getElementById('btn-general-bottom-branch');
-                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-muamalat-600 rounded transition-all";
+                    const active = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
                     const inactive = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
                     if (generalMode.branch === 'top') { btnTop.className = active; btnBottom.className = inactive; } else { btnTop.className = inactive; btnBottom.className = active; }
                 }
@@ -2459,7 +2443,7 @@
 
                     htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-xs md:text-base">
                         <td class="px-3 py-3 font-medium sticky-column"><span class="text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm">${item.branch}</span></td>
-                        <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate text-muamalat-600 dark:text-muamalat-400 font-semibold">${m1Display}</td>
+                        <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate text-indigo-600 dark:text-indigo-400 font-semibold">${m1Display}</td>
                         <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate text-emerald-600 dark:text-emerald-400 font-semibold">${m2Display}</td>
                         <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate ${gapClass} font-bold">${gapDisplay}</td>
                         <td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate ${growthClass} font-bold">${growthDisplay}</td>
@@ -2567,7 +2551,7 @@
             const btnProd = document.getElementById('filter-type-prod');
             const btnGrp = document.getElementById('filter-type-grp');
             // Styling active button
-            const activeClass = "flex-1 py-2 text-xs font-medium rounded border border-muamalat-500 bg-muamalat-50 text-muamalat-700 dark:bg-muamalat-900/30 dark:text-muamalat-300 dark:border-muamalat-500 transition-all";
+            const activeClass = "flex-1 py-2 text-xs font-medium rounded border border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500 transition-all";
             const inactiveClass = "flex-1 py-2 text-xs font-medium rounded border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700 transition-all";
             
             if (type === 'PRODUCT') {
@@ -2716,19 +2700,19 @@
             // Tutup Modal
             closeExportModal();
 
-            // AUTO SCROLL KE TABEL (di dalam area scroll bawah KPI)
+            // AUTO SCROLL KE TABEL (dengan kompensasi tinggi sticky header + KPI)
             setTimeout(() => {
                 const tableContainer = document.getElementById('table-card-container');
-                const scrollContainer = document.getElementById('dashboard-content');
-
-                if (tableContainer && scrollContainer) {
-                    const containerRect = scrollContainer.getBoundingClientRect();
-                    const targetRect = tableContainer.getBoundingClientRect();
+                const mainContent = document.getElementById('main-content');
+                const mainHeader = document.getElementById('main-header');
+                const kpiContainer = document.getElementById('kpi-container');
+                
+                if (tableContainer && mainContent) {
+                    const stickyOffset = (mainHeader ? mainHeader.offsetHeight : 0) + (kpiContainer ? kpiContainer.offsetHeight : 0);
                     const extraGap = 12; // jarak tambahan biar tidak terlalu mepet
-                    const relativeTop = (targetRect.top - containerRect.top) + scrollContainer.scrollTop;
-                    const targetTop = Math.max(relativeTop - extraGap, 0);
-
-                    scrollContainer.scrollTo({ top: targetTop, behavior: 'smooth' });
+                    const targetTop = tableContainer.offsetTop - stickyOffset - extraGap;
+                    
+                    mainContent.scrollTo({ top: targetTop, behavior: 'smooth' });
                 }
             }, 100);
         }
@@ -2767,8 +2751,8 @@
                 return '<i class="fa-solid fa-sort text-slate-300 dark:text-slate-600 ml-1"></i>';
             }
             return comparisonSortState.direction === 'asc'
-                ? '<i class="fa-solid fa-sort-up text-muamalat-500 ml-1"></i>'
-                : '<i class="fa-solid fa-sort-down text-muamalat-500 ml-1"></i>';
+                ? '<i class="fa-solid fa-sort-up text-indigo-500 ml-1"></i>'
+                : '<i class="fa-solid fa-sort-down text-indigo-500 ml-1"></i>';
         }
 
         function updateComparisonHeader(itemName, m1, m2) {
@@ -2779,7 +2763,7 @@
             let headerHtml = `<th scope="col" onclick="sortComparisonTable('branch')" class="px-2 py-2 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate ${sortableTh}">Branch${getSortIcon('branch')}</th>`;
             
             // Kolom M1
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('m1')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-muamalat-600 dark:text-muamalat-400 ${sortableTh}">${m1}${getSortIcon('m1')}</th>`;
+            headerHtml += `<th scope="col" onclick="sortComparisonTable('m1')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-indigo-600 dark:text-indigo-400 ${sortableTh}">${m1}${getSortIcon('m1')}</th>`;
             
             // Kolom M2
             headerHtml += `<th scope="col" onclick="sortComparisonTable('m2')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-emerald-600 dark:text-emerald-400 ${sortableTh}">${m2}${getSortIcon('m2')}</th>`;
@@ -2911,14 +2895,14 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Filter By</label>
                     <div class="flex gap-2">
-                        <button id="filter-type-prod" onclick="setExportFilterType('PRODUCT')" class="flex-1 py-2 text-xs font-medium rounded border border-muamalat-500 bg-muamalat-50 text-muamalat-700 dark:bg-muamalat-900/30 dark:text-muamalat-300 dark:border-muamalat-500 transition-all">Product</button>
+                        <button id="filter-type-prod" onclick="setExportFilterType('PRODUCT')" class="flex-1 py-2 text-xs font-medium rounded border border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-500 transition-all">Product</button>
                         <button id="filter-type-grp" onclick="setExportFilterType('GROUP')" class="flex-1 py-2 text-xs font-medium rounded border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700 transition-all">Group</button>
                     </div>
                 </div>
                 <!-- Select Item -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Select Item</label>
-                    <select id="export-item-select" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-muamalat-500">
+                    <select id="export-item-select" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
                         <!-- Options populated by JS -->
                     </select>
                 </div>
@@ -2926,13 +2910,13 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Month 1 (Base)</label>
-                        <select id="export-month-1" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-muamalat-500">
+                        <select id="export-month-1" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
                             <!-- Options populated by JS -->
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase">Month 2 (Compare)</label>
-                        <select id="export-month-2" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-muamalat-500">
+                        <select id="export-month-2" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
                             <!-- Options populated by JS -->
                         </select>
                     </div>
