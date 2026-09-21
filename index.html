@@ -2850,26 +2850,33 @@
 		}
 		
 		function performLogout() {
-		    // Tampilkan dialog konfirmasi
-		    const isConfirmed = confirm('Apakah Anda yakin ingin keluar?');
+		    Swal.fire({
+		        title: 'Konfirmasi Keluar',
+		        text: 'Apakah Anda yakin ingin keluar?',
+		        icon: 'warning',
+		        showCancelButton: true,
+		        confirmButtonColor: 'linear-gradient(135deg, #9b5de5, #6441A5);',
+		        cancelButtonColor: '#d33',
+		        confirmButtonText: 'Ya, Keluar',
+		        cancelButtonText: 'Batal'
+		    }).then((result) => {
+		        if (result.isConfirmed) {
+		            // 1. Hapus session auth
+		            localStorage.removeItem('mleadingind_auth_nik');
+		            localStorage.removeItem('saved_user_nik');
 		
-		    // Jika pengguna menekan tombol "OK", jalankan proses logout
-		    if (isConfirmed) {
-		        // 1. Hapus session auth
-		        localStorage.removeItem('mdashbmi_auth_nik');
-		        localStorage.removeItem('saved_user_nik');
+		            // 2. Tutup window/tab
+		            window.close();
 		
-		        // 2. Tutup window/tab
-		        window.close();
-		
-		        // Fallback jika window.close() diblokir oleh browser
-		        setTimeout(() => {
-		            window.location.replace('https://bmisumatera.vercel.app/');
-		        }, 100);
-		    }
-		    // Jika pengguna menekan "Batal", fungsi berhenti dan tidak terjadi apa-apa
-		}        
-    </script>
+		            // Fallback jika window.close() diblokir browser
+		            setTimeout(() => {
+		                window.location.replace('https://bmisumatera.vercel.app/');
+		            }, 100);
+		        }
+		    });
+		}
+
+	</script>
 
     <!-- EXPORT MODAL -->
     <div id="export-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
