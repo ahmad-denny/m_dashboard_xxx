@@ -648,16 +648,27 @@
                     </button>
                 </div>
 				<div class="w-full border border-slate-100 dark:border-slate-700 rounded-none overflow-x-auto">
-				    <!-- Pembungkus Scrollbar Vertikal Maksimal Tinggi (misal 400px) -->
-				    <div class="max-h-[400px] overflow-y-auto" id="table-scroll-container">
+				
+				    <!-- HEADER TABEL FIXED -->
+				    <div class="overflow-hidden">
 				        <table class="w-full text-[10px] md:text-sm text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
-				            <thead class="text-[9px] md:text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 sticky top-0 z-20 shadow-sm">
+				            <thead class="text-[9px] md:text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 shadow-sm">
 				                <tr id="dynamic-table-header-row"></tr>
 				            </thead>
-				            <tbody id="data-table-body" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
 				        </table>
 				    </div>
-				</div>
+				
+				    <!-- BODY TABEL + SCROLLBAR -->
+				    <div class="max-h-[400px] overflow-y-auto overflow-x-hidden"
+				         id="table-scroll-container">
+				        <table class="w-full text-[10px] md:text-sm text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
+				            <tbody id="data-table-body"
+				                   class="divide-y divide-slate-100 dark:divide-slate-700">
+				            </tbody>
+				        </table>
+				    </div>
+				
+				</div>				
 			</div>
         </div>
     </main>
