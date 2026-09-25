@@ -599,7 +599,7 @@
                     </div>
                 </div>
                 <!-- ROW 2: BAR CHARTS SECTION WITH TOGGLES -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6" id="branch-charts-row">
                     <!-- CO-BRANCH CHART -->
                     <div class="bg-white dark:bg-dark-card rounded-[10px] p-3 md:p-5 card-shadow border-l-4-t-2 border-muamalat-500 transition-colors duration-300">
                         <div id="co-branch-header" class="flex justify-between items-center mb-2 min-h-[24px] flex-wrap gap-2">
@@ -817,6 +817,11 @@
                 var cabangRaw = (user.cabang || '').toString().trim();
                 currentUserCabang = cabangRaw;
                 isRegionUser = !cabangRaw || cabangRaw.toUpperCase() === 'REGION';
+
+                // Chart perbandingan antar Co-Branch/Branch tidak relevan kalau
+                // user hanya punya akses ke 1 cabang saja -> sembunyikan.
+                var branchChartsRow = document.getElementById('branch-charts-row');
+                if (branchChartsRow) branchChartsRow.style.display = isRegionUser ? '' : 'none';
 
                 function getInitials(name) {
                     if (!name) return 'U';
@@ -2111,7 +2116,14 @@
             });
         }
 
-        function updateCharts() { updateTrendChart(); updateCompositionChart(); updateCoBranchChart(); updateBranchChart(); }
+        function updateCharts() {
+            updateTrendChart();
+            updateCompositionChart();
+            if (isRegionUser) {
+                updateCoBranchChart();
+                updateBranchChart();
+            }
+        }
 
         // OPTIMASI 6: Charts menggunakan Cache
         function updateTrendChart() {
