@@ -819,10 +819,8 @@
                 currentUserCabang = cabangRaw;
                 isRegionUser = !cabangRaw || cabangRaw.toUpperCase() === 'REGION';
 
-                // Chart perbandingan antar Co-Branch/Branch tidak relevan kalau
-                // user hanya punya akses ke 1 cabang saja -> sembunyikan.
-                var branchChartsRow = document.getElementById('branch-charts-row');
-                if (branchChartsRow) branchChartsRow.style.display = isRegionUser ? '' : 'none';
+                // Chart perbandingan antar Co-Branch/Branch tetap ditampilkan untuk semua
+                // role, karena data lengkap tetap tersedia dan bisa dijelajahi lewat filter.
 
                 function getInitials(name) {
                     if (!name) return 'U';
@@ -1137,8 +1135,6 @@
                             rawData = e.data;
                             if (rawData.length > 0) {
                                 detectColumns(rawData[0]);
-                                // Batasi data sesuai cabang user yang login (kecuali user level REGION).
-                                rawData = applyUserBranchRestriction(rawData);
                                 distinctProducts = [...new Set(rawData.map(row => row.PRODUCT))].filter(Boolean);
                                 productColors = generateColorsForProducts(distinctProducts);
                                 groupLabels = [...new Set(rawData.map(row => row.GROUP || 'General'))].filter(Boolean);
@@ -1153,7 +1149,7 @@
                             }
                             processData();
                             initFilters(preservedFilters);
-                            lockFiltersToUserBranch();
+                            setDefaultUserBranchFilter(preservedFilters);
                             updateDashboard();
                         } catch (err) {
                             console.error(err);
@@ -1316,29 +1312,34 @@
             return data.filter(row => matchesUserBranch(row['OFFICE']));
         }
 
-        // Kunci dropdown filter Co-Branch & Office ke cabang user login (untuk non-REGION),
-        // supaya judul dashboard & tabel filter konsisten dengan data yang sudah dibatasi.
-        function lockFiltersToUserBranch() {
+        // Set default filter Co-Branch & Office ke cabang user login (untuk non-REGION),
+        // TANPA menghapus data cabang lain dan TANPA men-disable dropdown filter -
+        // jadi user tetap bisa mengganti filter untuk melihat cabang lain kalau perlu.
+        function setDefaultUserBranchFilter(preservedFilters = {}) {
             if (isRegionUser || !currentUserCabang) return;
+
+            // Kalau sudah ada filter aktif sebelumnya (mis. saat pindah tab CSV/bulan,
+            // atau user sudah memilih cabang lain secara manual), jangan ditimpa lagi.
+            if (preservedFilters && (preservedFilters['CO-BRANCH'] || preservedFilters['OFFICE'])) return;
 
             const coSelect = document.getElementById('filter-CO-BRANCH');
             const officeSelect = document.getElementById('filter-OFFICE');
+            if (!coSelect || !officeSelect) return;
 
-            // Karena rawData sudah disaring ke satu cabang saja, opsi dropdown
-            // (selain "ALL") seharusnya cuma berisi satu nilai: cabang user itu sendiri.
-            if (coSelect && coSelect.options.length > 1) {
-                coSelect.value = coSelect.options[1].value;
-                coSelect.disabled = true;
-            }
-            if (officeSelect) {
-                populateFilterOptions('OFFICE', rawData);
-                if (officeSelect.options.length > 1) {
-                    officeSelect.value = officeSelect.options[1].value;
-                }
-                officeSelect.disabled = true;
+            const targetOfficeClean = normalizeLabel(cleanName(currentUserCabang));
+            const matchRow = rawData.find(row => normalizeLabel(row['OFFICE-CLEAN']) === targetOfficeClean);
+
+            if (!matchRow) {
+                console.warn(`Cabang "${currentUserCabang}" milik user tidak ditemukan pada data ini.`);
+                return;
             }
 
-            applyFilters();
+            coSelect.value = matchRow['CO-BRANCH-CLEAN'];
+            populateFilterOptions('OFFICE', rawData.filter(row => row['CO-BRANCH-CLEAN'] === matchRow['CO-BRANCH-CLEAN']));
+            officeSelect.value = matchRow['OFFICE-CLEAN'];
+
+            // Dropdown TETAP aktif (tidak di-disable) supaya user bisa mengganti filter kapan saja.
+            handleFilterChange();
         }
 
         // OPTIMASI 3: Single pass processing + Type conversion
@@ -1733,8 +1734,9 @@
             
             updateDashboard();
 
-            // Reset tidak boleh melepas kuncian cabang untuk user non-REGION.
-            lockFiltersToUserBranch();
+            // Reset mengembalikan tampilan ke default (cabang user login) untuk user non-REGION,
+            // tapi filter tetap bisa diganti manual ke cabang lain kalau diperlukan.
+            setDefaultUserBranchFilter();
         }
 
         function updateDashboard() {
@@ -2120,10 +2122,8 @@
         function updateCharts() {
             updateTrendChart();
             updateCompositionChart();
-            if (isRegionUser) {
-                updateCoBranchChart();
-                updateBranchChart();
-            }
+            updateCoBranchChart();
+            updateBranchChart();
         }
 
         // OPTIMASI 6: Charts menggunakan Cache
