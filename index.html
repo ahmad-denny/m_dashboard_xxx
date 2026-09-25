@@ -602,7 +602,7 @@
                 <!-- ROW 2: BAR CHARTS SECTION WITH TOGGLES -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6" id="branch-charts-row">
                     <!-- CO-BRANCH CHART -->
-                    <div class="bg-white dark:bg-dark-card rounded-[10px] p-3 md:p-5 card-shadow border-l-4-t-2 border-muamalat-500 transition-colors duration-300">
+                    <div class="bg-white dark:bg-dark-card rounded-[10px] p-3 md:p-5 card-shadow border-l-4-t-2 border-muamalat-500 transition-colors duration-300" id="co-branch-chart-card">
                         <div id="co-branch-header" class="flex justify-between items-center mb-2 min-h-[24px] flex-wrap gap-2">
                             <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="co-branch-title">Top 5 CO-Branches</h3>
                             <!-- Toggle View Mode (Value/%) -->
@@ -628,7 +628,7 @@
                         </div>
                     </div>
                     <!-- BRANCH CHART -->
-                    <div class="bg-white dark:bg-dark-card rounded-[10px] p-3 md:p-5 card-shadow border-l-4-t-2 border-muamalat-500 transition-colors duration-300">
+                    <div class="bg-white dark:bg-dark-card rounded-[10px] p-3 md:p-5 card-shadow border-l-4-t-2 border-muamalat-500 transition-colors duration-300" id="branch-chart-card">
                         <div id="branch-header" class="flex justify-between items-center mb-2 min-h-[24px] flex-wrap gap-2">
                             <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="branch-title">Top 5 Branches</h3>
                             <!-- Toggle View Mode (Value/%) -->
@@ -2119,11 +2119,33 @@
             });
         }
 
+        // Chart "Top 5 Co-Branch" hanya relevan saat benar-benar tanpa filter (Co-Branch = ALL & Branch = ALL).
+        // Chart "Top 5 Branch" tetap relevan selama Branch = ALL, walau Co-Branch sudah dipilih spesifik
+        // (menampilkan perbandingan antar Branch di dalam Co-Branch tersebut).
+        function updateBranchComparisonVisibility() {
+            const coVal = document.getElementById('filter-CO-BRANCH')?.value || 'ALL';
+            const officeVal = document.getElementById('filter-OFFICE')?.value || 'ALL';
+
+            const coCard = document.getElementById('co-branch-chart-card');
+            const brCard = document.getElementById('branch-chart-card');
+            const row = document.getElementById('branch-charts-row');
+
+            const showCo = (coVal === 'ALL' && officeVal === 'ALL');
+            const showBranch = (officeVal === 'ALL');
+
+            if (coCard) coCard.style.display = showCo ? '' : 'none';
+            if (brCard) brCard.style.display = showBranch ? '' : 'none';
+            if (row) row.style.display = (showCo || showBranch) ? '' : 'none';
+
+            return { showCo, showBranch };
+        }
+
         function updateCharts() {
             updateTrendChart();
             updateCompositionChart();
-            updateCoBranchChart();
-            updateBranchChart();
+            const { showCo, showBranch } = updateBranchComparisonVisibility();
+            if (showCo) updateCoBranchChart();
+            if (showBranch) updateBranchChart();
         }
 
         // OPTIMASI 6: Charts menggunakan Cache
