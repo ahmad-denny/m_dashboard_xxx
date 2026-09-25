@@ -717,7 +717,7 @@
         });
 
         // --- CONFIGURATION ---
-        const MANUAL_DATE_LATEST_MONTH = '23 September 2026';
+        const MANUAL_DATE_LATEST_MONTH = '22 September 2026';
 
         // --- WEB WORKER FOR PARSING ---
         const workerCode = `
@@ -812,6 +812,11 @@
                 var userPos = user.posisi || '-';
                 var userLoc = user.lokasi || user.region || user.cabang || '';
                 var displayPos = userPos;
+
+                // Simpan cabang user login untuk membatasi data yang ditampilkan.
+                var cabangRaw = (user.cabang || '').toString().trim();
+                currentUserCabang = cabangRaw;
+                isRegionUser = !cabangRaw || cabangRaw.toUpperCase() === 'REGION';
 
                 function getInitials(name) {
                     if (!name) return 'U';
@@ -1035,6 +1040,13 @@
         let distinctProducts = [];
         let productColors = {};
         let groupLabels = [];
+
+        // --- BRANCH ACCESS CONTROL ---
+        // Diisi dari data user login (field "cabang" di user_list.json).
+        // Kalau cabang == "REGION" (atau kosong), user dianggap level region
+        // dan tetap bisa melihat seluruh cabang seperti sebelumnya.
+        let currentUserCabang = null;
+        let isRegionUser = true;
         
         // CACHE AGGREGATION RESULTS
         let aggCache = {
@@ -1119,6 +1131,8 @@
                             rawData = e.data;
                             if (rawData.length > 0) {
                                 detectColumns(rawData[0]);
+                                // Batasi data sesuai cabang user yang login (kecuali user level REGION).
+                                rawData = applyUserBranchRestriction(rawData);
                                 distinctProducts = [...new Set(rawData.map(row => row.PRODUCT))].filter(Boolean);
                                 productColors = generateColorsForProducts(distinctProducts);
                                 groupLabels = [...new Set(rawData.map(row => row.GROUP || 'General'))].filter(Boolean);
@@ -1273,6 +1287,26 @@
         function cleanName(name) {
             if (name && name.length > 6 && name.substring(3, 6) === ' - ') return name.substring(6).trim();
             return name;
+        }
+
+        // --- BRANCH ACCESS CONTROL HELPERS ---
+        function normalizeLabel(str) {
+            return String(str || '').trim().toUpperCase();
+        }
+
+        function matchesUserBranch(rowOfficeRaw) {
+            if (!currentUserCabang) return true;
+            const userRaw = normalizeLabel(currentUserCabang);
+            const rowRaw = normalizeLabel(rowOfficeRaw);
+            if (userRaw === rowRaw) return true;
+            // Fallback: bandingkan nama cabang tanpa kode (mis. "MEDAN BALAIKOTA")
+            // untuk berjaga-jaga kalau format kode di CSV sedikit berbeda dari user_list.json.
+            return normalizeLabel(cleanName(currentUserCabang)) === normalizeLabel(cleanName(rowOfficeRaw));
+        }
+
+        function applyUserBranchRestriction(data) {
+            if (isRegionUser || !currentUserCabang) return data;
+            return data.filter(row => matchesUserBranch(row['OFFICE']));
         }
 
         // OPTIMASI 3: Single pass processing + Type conversion
