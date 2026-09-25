@@ -1147,6 +1147,7 @@
                             }
                             processData();
                             initFilters(preservedFilters);
+                            lockFiltersToUserBranch();
                             updateDashboard();
                         } catch (err) {
                             console.error(err);
@@ -1307,6 +1308,31 @@
         function applyUserBranchRestriction(data) {
             if (isRegionUser || !currentUserCabang) return data;
             return data.filter(row => matchesUserBranch(row['OFFICE']));
+        }
+
+        // Kunci dropdown filter Co-Branch & Office ke cabang user login (untuk non-REGION),
+        // supaya judul dashboard & tabel filter konsisten dengan data yang sudah dibatasi.
+        function lockFiltersToUserBranch() {
+            if (isRegionUser || !currentUserCabang) return;
+
+            const coSelect = document.getElementById('filter-CO-BRANCH');
+            const officeSelect = document.getElementById('filter-OFFICE');
+
+            // Karena rawData sudah disaring ke satu cabang saja, opsi dropdown
+            // (selain "ALL") seharusnya cuma berisi satu nilai: cabang user itu sendiri.
+            if (coSelect && coSelect.options.length > 1) {
+                coSelect.value = coSelect.options[1].value;
+                coSelect.disabled = true;
+            }
+            if (officeSelect) {
+                populateFilterOptions('OFFICE', rawData);
+                if (officeSelect.options.length > 1) {
+                    officeSelect.value = officeSelect.options[1].value;
+                }
+                officeSelect.disabled = true;
+            }
+
+            applyFilters();
         }
 
         // OPTIMASI 3: Single pass processing + Type conversion
@@ -1700,6 +1726,9 @@
             document.getElementById('table-title').innerText = "Detailed Breakdown";
             
             updateDashboard();
+
+            // Reset tidak boleh melepas kuncian cabang untuk user non-REGION.
+            lockFiltersToUserBranch();
         }
 
         function updateDashboard() {
