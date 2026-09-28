@@ -14,6 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Tailwind Config -->
@@ -418,7 +419,7 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <button id="summary-capture-btn" onclick="(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
+                <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-camera sm:mr-1"></i> <span class="hidden sm:inline">Capture</span>
                 </button>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
@@ -1025,15 +1026,15 @@
 
         // --- DATA HANDLING ---
         const csvFilesConfig = [
-            { name: "Financing Booking", file: "finbook.csv", icon: "fa-users" },
-            { name: "Financing Oustanding", file: "finos.csv", icon: "fa-hand-holding-dollar" },
-            { name: "Funding Regular", file: "funding.csv", icon: "fa-chart-line" },
-            { name: "Funding Priority", file: "priority.csv", icon: "fa-vault" },
-            { name: "Hajj Portion", file: "haji.csv", icon: "fa-kaaba" },
-            { name: "QRIS Muamalat", file: "qris.csv", icon: "fa-qrcode" },
-            { name: "Muamalat DIN", file: "mdin.csv", icon: "fa-mobile-alt" },
-            { name: "Non Performing Financing", file: "coll.csv", icon: "fa-gauge" },
-            { name: "Sunlife Bancassurance", file: "sli.csv", icon: "fa-umbrella" },
+            { name: "FinBook", file: "finbook.csv", icon: "fa-users" },
+            { name: "FinOS", file: "finos.csv", icon: "fa-hand-holding-dollar" },
+            { name: "Funding", file: "funding.csv", icon: "fa-chart-line" },
+            { name: "Priority", file: "priority.csv", icon: "fa-vault" },
+            { name: "Hajj", file: "haji.csv", icon: "fa-kaaba" },
+            { name: "Qris", file: "qris.csv", icon: "fa-qrcode" },
+            { name: "MDin", file: "mdin.csv", icon: "fa-mobile-alt" },
+            { name: "NPF", file: "coll.csv", icon: "fa-gauge" },
+            { name: "SLI", file: "sli.csv", icon: "fa-umbrella" },
             { name: "Summary Performance", file: "summary", icon: "fa-gauge-high", isSummary: true }
         ];
         
@@ -3039,7 +3040,7 @@
 	
         // =====================================================================
         // SUMMARY PERFORMANCE (gabungan KPI semua produk)
-        // Urutan: Financing Booking, Financing Oustanding, NPF, Funding, Priority, Hajj Portion, Qris, MDin, SLI
+        // Urutan: FinBook, FinOS, NPF, Funding, Priority, Hajj, Qris, MDin, SLI
         // Memakai filter CO-BRANCH / OFFICE & pilihan bulan yang sama dengan menu lain.
         // =====================================================================
         const SUMMARY_ORDER = [
@@ -3322,110 +3323,76 @@
             }
         }
 
-window.captureSummary = function(btn) {
-    // 1. Notifikasi awal untuk memastikan tombol merespons
-    console.log('[Debug] Tombol Capture diklik!');
-
-    // 2. Cek Elemen Target
-    var summaryWrapper = document.getElementById('summary-wrapper');
-    if (!summaryWrapper) {
-        alert("Error: Elemen ID 'summary-wrapper' tidak ditemukan di halaman!");
-        return;
-    }
-
-    // 3. Cek Library html2canvas
-    if (typeof html2canvas === 'undefined') {
-        alert("Error: Library 'html2canvas' belum dimuat! Pastikan CDN html2canvas terpasang di <head>.");
-        return;
-    }
-
-    // Tampilkan Loading jika ada
-    var loadingEl = document.getElementById('loading');
-    if (loadingEl) loadingEl.style.display = 'flex';
-
-    // 4. Eksekusi Capture Menggunakan 'onclone'
-    try {
-        html2canvas(summaryWrapper, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: (document.body && document.body.classList.contains('dark')) ? '#0f172a' : '#f8fafc',
-            logging: false,
-            windowWidth: 1400, // Mengunci emulasi layar ke Desktop View (4 Kolom)
-            onclone: function(clonedDoc) {
-                var clonedWrapper = clonedDoc.getElementById('summary-wrapper');
-                if (!clonedWrapper) return;
-
-                // KUNCI TAMPILAN DESKTOP (1350px) agar layout tidak jatuh/berantakan
-                clonedWrapper.style.width = '1350px';
-                clonedWrapper.style.minWidth = '1350px';
-                clonedWrapper.style.maxWidth = '1350px';
-                clonedWrapper.style.boxSizing = 'border-box';
-                clonedWrapper.style.margin = '0 auto';
-                clonedWrapper.style.padding = '20px';
-
-                // Buat Header Capture Khusus
-                var headerAsOfEl = document.getElementById('header-as-of');
-                var asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
-
-                var captureHeader = clonedDoc.createElement('div');
-                captureHeader.style.cssText = 'width: 100% !important; margin-bottom: 20px !important; padding: 16px 24px !important; border-radius: 12px !important; background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important; color: #ffffff !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; display: flex !important; align-items: center !important; justify-content: space-between !important; box-sizing: border-box !important;';
-                
-                captureHeader.innerHTML = '<div style="display: flex; flex-direction: column; justify-content: center;"><h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - REGION SUMATERA</h1><p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">' + asOfText + '</strong></p></div><div style="display: flex; align-items: center; justify-content: center;"><span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">Region Sumatera</span></div>';
-
-                clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
-
-                // Perbaiki Card Padding (Mencegah teks atas/bawah terpotong)
-                var cards = clonedWrapper.querySelectorAll('div');
-                for (var i = 0; i < cards.length; i++) {
-                    var card = cards[i];
-                    card.style.overflow = 'visible';
-                    card.style.height = 'auto';
-                    card.style.maxHeight = 'none';
-
-                    if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.indexOf('bg-dark') !== -1 || card.classList.contains('rounded-xl')) {
-                        card.style.paddingTop = '18px';
-                        card.style.paddingBottom = '22px';
-                    }
-                }
-
-                // Perbaiki Ukuran & Warna Panah
-                var arrows = clonedWrapper.querySelectorAll('i');
-                for (var j = 0; j < arrows.length; j++) {
-                    var arrow = arrows[j];
-                    if (arrow.className.indexOf('arrow') !== -1 || arrow.className.indexOf('caret') !== -1) {
-                        arrow.style.fontSize = '12px';
-                        arrow.style.display = 'inline-block';
-                        arrow.style.verticalAlign = 'middle';
-                        arrow.style.marginRight = '3px';
-
-                        var parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
-                        var isDown = arrow.className.indexOf('down') !== -1 || parentText.indexOf('-') !== -1;
-                        arrow.style.color = isDown ? '#ef4444' : '#10b981';
-                    }
-                }
+        function captureSummary(btn) {
+            const target = document.getElementById('summary-wrapper');
+            if (!target || !target.innerHTML.trim()) return;
+            if (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined') {
+                alert("Library screenshot belum siap. Silakan refresh halaman.");
+                return;
             }
-        }).then(function(canvas) {
-            if (loadingEl) loadingEl.style.display = 'none';
 
-            var fileNameDate = new Date().toISOString().split('T')[0];
-            var link = document.createElement('a');
-            link.download = 'Summary_Performance_REGION_SUMATERA_' + fileNameDate + '.png';
-            link.href = canvas.toDataURL('image/png');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin sm:mr-1"></i> <span class="hidden sm:inline">Processing...</span>';
+            btn.disabled = true;
 
-        }).catch(function(err) {
-            if (loadingEl) loadingEl.style.display = 'none';
-            alert('Gagal mengambil gambar: ' + err.message);
-        });
-    } catch (err) {
-        if (loadingEl) loadingEl.style.display = 'none';
-        alert('Terjadi kesalahan script: ' + err.message);
-    }
-};
-		
+            const isDark = document.body.classList.contains('dark');
+            const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten
+            const pad = 16; // ruang di tepi hasil capture
+
+            const download = (dataUrl) => {
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().slice(0, 10);
+                link.download = `Summary_Performance_${timestamp}.png`;
+                link.href = dataUrl;
+                link.click();
+            };
+
+            // Utama: html-to-image (dirender langsung oleh browser, posisi teks/ikon sama persis dengan layar).
+            const withHtmlToImage = () => htmlToImage.toPng(target, {
+                pixelRatio: 2,
+                backgroundColor: bgColor,
+                cacheBust: true,
+                width: target.offsetWidth,
+                height: target.offsetHeight + pad * 2 - (parseFloat(getComputedStyle(target).paddingTop) + parseFloat(getComputedStyle(target).paddingBottom)),
+                style: { padding: pad + 'px', margin: '0' }
+            });
+
+            // Cadangan: html2canvas, dengan lebar layout yang sama seperti layar agar tata letak tidak berubah.
+            const withHtml2Canvas = () => {
+                const prevPadding = target.style.padding;
+                target.style.padding = pad + 'px';
+                return html2canvas(target, {
+                    scale: 2, useCORS: true, backgroundColor: bgColor, logging: false,
+                    windowWidth: document.documentElement.clientWidth,
+                    windowHeight: Math.max(target.scrollHeight + 400, document.documentElement.clientHeight),
+                    onclone: (clonedDoc) => {
+                        const fix = clonedDoc.createElement('style');
+                        fix.textContent = '#summary-wrapper .truncate { overflow: visible !important; text-overflow: clip !important; } #summary-wrapper * { transition: none !important; }';
+                        clonedDoc.head.appendChild(fix);
+                    }
+                }).then(canvas => canvas.toDataURL('image/png', 1.0))
+                  .finally(() => { target.style.padding = prevPadding; });
+            };
+
+            const run = (typeof htmlToImage !== 'undefined')
+                ? withHtmlToImage().catch(err => {
+                    console.warn('html-to-image gagal, memakai html2canvas:', err);
+                    if (typeof html2canvas === 'undefined') throw err;
+                    return withHtml2Canvas();
+                })
+                : withHtml2Canvas();
+
+            run.then(download)
+               .catch(err => {
+                    console.error("Capture Error:", err);
+                    alert("Gagal mengambil screenshot: " + (err && err.message ? err.message : err));
+               })
+               .finally(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+               });
+        }
+
         function hideSummaryView() {
             summaryActive = false;
             ['kpi-container', 'charts-wrapper', 'table-card-container', 'table-position-placeholder'].forEach(id => {
