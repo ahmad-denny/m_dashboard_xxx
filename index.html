@@ -3323,6 +3323,86 @@
             }
         }
 
+        // --- Capture Summary: embed font (Font Awesome + Plus Jakarta Sans) agar ikon & teks ter-render di hasil capture ---
+        let _summaryFontCssPromise = null;
+        function getSummaryFontCss() {
+            if (_summaryFontCssPromise) return _summaryFontCssPromise;
+            const toDataUrl = async (url) => {
+                const res = await fetch(url, { mode: 'cors' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const blob = await res.blob();
+                return await new Promise((ok, fail) => {
+                    const r = new FileReader();
+                    r.onload = () => ok(r.result);
+                    r.onerror = fail;
+                    r.readAsDataURL(blob);
+                });
+            };
+            const fetchText = async (url) => {
+                const res = await fetch(url, { mode: 'cors' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.text();
+            };
+            const linkHref = (needle) => {
+                const el = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(l => l.href && l.href.includes(needle));
+                return el ? el.href : null;
+            };
+
+            // Font Awesome: ambil hanya @font-face fa-solid-900 (woff2) yang dipakai semua ikon "fa-solid"
+            const faFont = async () => {
+                const href = linkHref('font-awesome');
+                if (!href) return '';
+                const css = await fetchText(href);
+                const rule = (css.match(/@font-face\s*\{[^}]*fa-solid-900[^}]*\}/) || [])[0];
+                if (!rule) return '';
+                const m = rule.match(/url\(\s*["']?([^)"']*fa-solid-900\.woff2)["']?\s*\)/);
+                if (!m) return '';
+                const data = await toDataUrl(new URL(m[1], href).href);
+                return `@font-face{font-family:"Font Awesome 6 Free";font-style:normal;font-weight:900;font-display:block;src:url(${data}) format("woff2");}`;
+            };
+
+            // Plus Jakarta Sans: inline semua url() font ke data URI
+            const jakartaFont = async () => {
+                const href = linkHref('Plus+Jakarta+Sans');
+                if (!href) return '';
+                let css = await fetchText(href);
+                const urls = Array.from(new Set(Array.from(css.matchAll(/url\(\s*["']?([^)"']+)["']?\s*\)/g)).map(x => x[1])));
+                await Promise.all(urls.map(async u => {
+                    try { css = css.split(u).join(await toDataUrl(new URL(u, href).href)); } catch (e) { /* lewati */ }
+                }));
+                return css;
+            };
+
+            _summaryFontCssPromise = Promise.all([
+                faFont().catch(e => { console.warn('Embed Font Awesome gagal:', e); return ''; }),
+                jakartaFont().catch(e => { console.warn('Embed Plus Jakarta Sans gagal:', e); return ''; })
+            ]).then(parts => parts.join('\n'));
+            // jika gagal total, jangan di-cache agar bisa dicoba lagi
+            _summaryFontCssPromise.then(css => { if (!css.trim()) _summaryFontCssPromise = null; });
+            return _summaryFontCssPromise;
+        }
+
+        // Header title khusus hasil capture (dipasang sementara, dilepas lagi setelah capture)
+        function buildSummaryCaptureHeader(isDark) {
+            const title = (document.getElementById('dashboard-main-title')?.innerText || 'Summary Performance').trim();
+            const asOf = (document.getElementById('header-as-of')?.innerText || '').trim();
+            const cTitle = isDark ? '#ffffff' : '#1e293b';
+            const cSub = isDark ? '#94a3b8' : '#94a3b8';
+            const cAccent = isDark ? '#9F7ED8' : '#6441A5';
+            const cLine = isDark ? '#334155' : '#e2e8f0';
+            const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+            const el = document.createElement('div');
+            el.id = 'summary-capture-header';
+            el.style.cssText = `display:flex;align-items:center;gap:12px;padding:0 0 12px 0;margin:0 0 4px 0;border-bottom:2px solid ${cLine};`;
+            el.innerHTML = `
+                <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>
+                <div style="min-width:0;">
+                    <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(title)}</div>
+                    <div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">As of <span style="font-weight:600;color:${cAccent};">${esc(asOf || '-')}</span></div>
+                </div>`;
+            return el;
+        }
+
         function captureSummary(btn) {
             const target = document.getElementById('summary-wrapper');
             if (!target || !target.innerHTML.trim()) return;
@@ -3339,6 +3419,13 @@
             const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten
             const pad = 16; // ruang di tepi hasil capture
 
+            // Pasang header title sementara di bagian atas area capture
+            const oldHeader = document.getElementById('summary-capture-header');
+            if (oldHeader) oldHeader.remove();
+            const capHeader = buildSummaryCaptureHeader(isDark);
+            target.insertBefore(capHeader, target.firstChild);
+            const removeCapHeader = () => { if (capHeader.parentNode) capHeader.parentNode.removeChild(capHeader); };
+
             const download = (dataUrl) => {
                 const link = document.createElement('a');
                 const timestamp = new Date().toISOString().slice(0, 10);
@@ -3348,13 +3435,18 @@
             };
 
             // Utama: html-to-image (dirender langsung oleh browser, posisi teks/ikon sama persis dengan layar).
-            const withHtmlToImage = () => htmlToImage.toPng(target, {
-                pixelRatio: 2,
-                backgroundColor: bgColor,
-                cacheBust: true,
-                width: target.offsetWidth,
-                height: target.offsetHeight + pad * 2 - (parseFloat(getComputedStyle(target).paddingTop) + parseFloat(getComputedStyle(target).paddingBottom)),
-                style: { padding: pad + 'px', margin: '0' }
+            const withHtmlToImage = () => getSummaryFontCss().then(fontCss => {
+                const opts = {
+                    pixelRatio: 2,
+                    backgroundColor: bgColor,
+                    cacheBust: true,
+                    width: target.offsetWidth,
+                    height: target.offsetHeight + pad * 2 - (parseFloat(getComputedStyle(target).paddingTop) + parseFloat(getComputedStyle(target).paddingBottom)),
+                    style: { padding: pad + 'px', margin: '0' }
+                };
+                // Font Awesome & Plus Jakarta Sans di-embed manual supaya ikon tidak tampil sebagai kotak
+                if (fontCss && fontCss.trim()) opts.fontEmbedCSS = fontCss;
+                return htmlToImage.toPng(target, opts);
             });
 
             // Cadangan: html2canvas, dengan lebar layout yang sama seperti layar agar tata letak tidak berubah.
@@ -3388,6 +3480,7 @@
                     alert("Gagal mengambil screenshot: " + (err && err.message ? err.message : err));
                })
                .finally(() => {
+                    removeCapHeader();
                     btn.innerHTML = originalContent;
                     btn.disabled = false;
                });
