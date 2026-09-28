@@ -3345,22 +3345,34 @@ window.captureSummary = function(btn) {
     }
     cabangUser = cabangUser.toUpperCase();
 
-    // 2. Buat Header Capture Khusus dengan Alignment Presisi (Poin 1)
+    // 2. Buat Header Capture Khusus dengan Flex Alignment Presisi
     const captureHeader = document.createElement('div');
     captureHeader.id = 'capture-header-temp';
-    captureHeader.className = 'w-full mb-5 px-5 py-3.5 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg flex items-center justify-between align-middle';
+    captureHeader.style.cssText = `
+        width: 100%;
+        margin-bottom: 20px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%);
+        color: #ffffff;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-sizing: border-box;
+    `;
     
     // Tanggal As Of saat ini
     const headerAsOfEl = document.getElementById('header-as-of');
     const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
 
     captureHeader.innerHTML = `
-        <div class="flex flex-col justify-center">
-            <h1 class="text-xl md:text-2xl font-bold tracking-wide leading-tight my-0">Summary Performance - ${cabangUser}</h1>
-            <p class="text-xs text-purple-200 mt-1 mb-0 leading-none">Data Performa & Realisasi As of: <span class="font-semibold text-white">${asOfText}</span></p>
+        <div style="display: flex; flex-direction: column; justify-content: center;">
+            <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
+            <p style="font-size: 12px; margin: 4px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
         </div>
-        <div class="flex items-center justify-center my-auto">
-            <span class="inline-flex items-center justify-center text-xs font-semibold px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white uppercase tracking-wider leading-none text-center">
+        <div style="display: flex; align-items: center; height: 100%;">
+            <span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">
                 Region Sumatera
             </span>
         </div>
@@ -3369,49 +3381,45 @@ window.captureSummary = function(btn) {
     // Sisipkan Header ke paling atas summary-wrapper
     summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
 
-    // 3. Penyesuaian Style Card & Panah selama Capture (Poin 2, 3, 4, 5)
+    // 3. Penyesuaian Style Card agar tidak terpotong & panah rapi
     const cards = summaryWrapper.querySelectorAll('.card-shadow, .bg-white, .dark\\:bg-dark-card');
     const originalStyles = [];
 
     cards.forEach((card) => {
-        // Simpan style asli untuk di-restore nanti
+        // Simpan style asli untuk di-restore
         originalStyles.push({
             el: card,
-            paddingBottom: card.style.paddingBottom,
+            padding: card.style.padding,
             overflow: card.style.overflow,
-            height: card.style.height
+            height: card.style.height,
+            minHeight: card.style.minHeight
         });
 
-        // Cegah teks/tanggal terpotong (Poin 2 & 4)
+        // Berikan ruang padding internal agar judul atas & tanggal bawah TIDAK TERPOTONG
         card.style.overflow = 'visible';
         card.style.height = 'auto';
-        card.style.paddingBottom = '16px';
+        card.style.paddingTop = '16px';
+        card.style.paddingBottom = '20px';
 
-        // Sesuaikan alignment badge MTD/YTD di tengah (Poin 3)
-        const badges = card.querySelectorAll('.rounded-full, .rounded-md, .px-2, .py-1');
-        badges.forEach(b => {
-            b.style.display = 'inline-flex';
-            b.style.alignItems = 'center';
-            b.style.justifyContent = 'center';
-            b.style.lineHeight = '1.2';
-        });
-
-        // Cari dan sesuaikan Panah Indikator (Poin 5)
+        // Rapikan Panah Indikator tanpa merusak alur baris teks
         const arrows = card.querySelectorAll('i.fa-arrow-up, i.fa-arrow-down, i.fa-long-arrow-alt-up, i.fa-long-arrow-alt-down, i.fa-caret-up, i.fa-caret-down');
         arrows.forEach(arrow => {
-            arrow.dataset.origClass = arrow.className;
             arrow.dataset.origStyle = arrow.getAttribute('style') || '';
+            arrow.dataset.origClass = arrow.className;
 
-            // Ukuran diperkecil
-            arrow.style.fontSize = '1.5rem';
-            arrow.style.fontWeight = 'bold';
-            arrow.style.opacity = '0.9';
+            // Ukuran panah proporsional & kecil agar tidak mendorong layout
+            arrow.style.fontSize = '14px';
+            arrow.style.display = 'inline-block';
+            arrow.style.verticalAlign = 'middle';
+            arrow.style.marginRight = '3px';
+            arrow.style.marginLeft = '1px';
 
-            // Cek apakah panah kebawah (merah) atau keatas (hijau)
+            // Cek warna panah (Turun = Merah, Naik = Hijau)
+            const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
             const isDown = arrow.classList.contains('fa-arrow-down') || 
                            arrow.classList.contains('fa-long-arrow-alt-down') || 
                            arrow.classList.contains('fa-caret-down') ||
-                           (arrow.parentElement && arrow.parentElement.innerText.includes('-'));
+                           parentText.includes('-');
 
             if (isDown) {
                 arrow.style.color = '#ef4444'; // Merah
@@ -3421,7 +3429,7 @@ window.captureSummary = function(btn) {
         });
     });
 
-    // 4. Proses Capture Menggunakan html2canvas
+    // 4. Proses Capture dengan html2canvas
     setTimeout(() => {
         html2canvas(summaryWrapper, {
             scale: 2,
@@ -3433,9 +3441,10 @@ window.captureSummary = function(btn) {
             if (captureHeader) captureHeader.remove();
             
             originalStyles.forEach(item => {
-                item.el.style.paddingBottom = item.paddingBottom;
+                item.el.style.padding = item.padding;
                 item.el.style.overflow = item.overflow;
                 item.el.style.height = item.height;
+                item.el.style.minHeight = item.minHeight;
             });
 
             cards.forEach((card) => {
