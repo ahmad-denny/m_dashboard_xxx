@@ -3322,19 +3322,27 @@
             }
         }
 
-// Didaftarkan langsung ke objek window agar dijamin bisa dipanggil onclick
 window.captureSummary = function(btn) {
+    // 1. Log konfirmasi di Console Browser
     console.log('[CaptureSummary] Tombol berhasil diklik!');
 
+    // 2. Tampilkan indikator loading jika ada
+    var loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'flex';
+
     try {
-        // 1. Validasi Elemen Target Summary
-        const summaryWrapper = document.getElementById('summary-wrapper');
+        // 3. Validasi Elemen Utama
+        var summaryWrapper = document.getElementById('summary-wrapper');
         if (!summaryWrapper) {
-            alert("Elemen dengan ID 'summary-wrapper' tidak ditemukan di halaman ini!");
+            if (loadingEl) loadingEl.style.display = 'none';
+            alert("Elemen 'summary-wrapper' tidak ditemukan di halaman ini.");
             return;
         }
 
-        if (summaryWrapper.classList.contains('hidden') || summaryWrapper.offsetParent === null) {
+        // Cek jika menu tersembunyi
+        var isHidden = summaryWrapper.classList.contains('hidden') || summaryWrapper.offsetParent === null;
+        if (isHidden) {
+            if (loadingEl) loadingEl.style.display = 'none';
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',
@@ -3348,47 +3356,26 @@ window.captureSummary = function(btn) {
             return;
         }
 
-        // 2. Cek Keberadaan html2canvas
+        // 4. Cek Library html2canvas
         if (typeof html2canvas === 'undefined') {
-            alert("Library 'html2canvas' tidak terdeteksi! Pastikan CDN html2canvas sudah terpasang di bagian <head> atau sebelum tag </body>.");
+            if (loadingEl) loadingEl.style.display = 'none';
+            alert("Library 'html2canvas' belum dimuat. Pastikan CDN html2canvas terpasang di <head>.");
             return;
         }
 
-        // 3. Tampilkan Loading
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'flex';
-
-        // 4. Ambil Cabang dengan Aman
-        let cabangUser = 'REGION SUMATERA';
-        try {
-            if (typeof currentUserCabang !== 'undefined' && currentUserCabang) {
-                cabangUser = currentUserCabang;
-            }
-            if (typeof cleanName === 'function') {
-                cabangUser = cleanName(cabangUser);
-            }
-        } catch (e) {
-            console.warn('[CaptureSummary] Gagal mengambil variabel cabangUser, menggunakan default.', e);
-        }
-        cabangUser = String(cabangUser).toUpperCase();
-
-        const headerAsOfEl = document.getElementById('header-as-of');
-        const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
-
-        // 5. Eksekusi html2canvas Menggunakan Callback 'onclone'
+        // 5. Eksekusi html2canvas dengan Metode 'onclone'
         html2canvas(summaryWrapper, {
             scale: 2,
             useCORS: true,
             allowTaint: true,
             backgroundColor: (document.body && document.body.classList.contains('dark')) ? '#0f172a' : '#f8fafc',
-            logging: true,
-            windowWidth: 1400, // Mengunci tampilan emulasi agar tetap 4 kolom Desktop
+            logging: false,
+            windowWidth: 1400, // Memaksa emulasi tampilan Desktop (4 Kolom)
             onclone: function(clonedDoc) {
-                console.log('[CaptureSummary] Memproses dokumen clone...');
-                const clonedWrapper = clonedDoc.getElementById('summary-wrapper');
+                var clonedWrapper = clonedDoc.getElementById('summary-wrapper');
                 if (!clonedWrapper) return;
 
-                // Kunci Lebar Desktop (1350px) agar layout tidak jatuh menjadi 2 kolom
+                // A. KUNCI TAMPILAN DESKTOP 1350px (Mencegah layout jatuh/berantakan 2 kolom)
                 clonedWrapper.style.width = '1350px';
                 clonedWrapper.style.minWidth = '1350px';
                 clonedWrapper.style.maxWidth = '1350px';
@@ -3396,8 +3383,12 @@ window.captureSummary = function(btn) {
                 clonedWrapper.style.margin = '0 auto';
                 clonedWrapper.style.padding = '20px';
 
-                // Tambahkan Header Capture Khusus
-                const captureHeader = clonedDoc.createElement('div');
+                // B. Ambil Teks Header As Of secara aman
+                var headerAsOfEl = document.getElementById('header-as-of');
+                var asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+
+                // C. Buat Header Capture Khusus
+                var captureHeader = clonedDoc.createElement('div');
                 captureHeader.style.cssText = `
                     width: 100% !important;
                     margin-bottom: 20px !important;
@@ -3413,7 +3404,7 @@ window.captureSummary = function(btn) {
                 `;
                 captureHeader.innerHTML = `
                     <div style="display: flex; flex-direction: column; justify-content: center;">
-                        <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
+                        <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - REGION SUMATERA</h1>
                         <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: center;">
@@ -3424,47 +3415,48 @@ window.captureSummary = function(btn) {
                 `;
                 clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
 
-                // Perbaiki Padding & Overflow Card agar Teks Tidak Terpotong
-                const cards = clonedWrapper.querySelectorAll('div');
-                cards.forEach(card => {
+                // D. Perbaiki Padding Card agar Judul KPI & Tanggal Bawah Tidak Terpotong
+                var cards = clonedWrapper.querySelectorAll('div');
+                for (var i = 0; i < cards.length; i++) {
+                    var card = cards[i];
                     card.style.overflow = 'visible';
                     card.style.height = 'auto';
                     card.style.maxHeight = 'none';
 
-                    if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.includes('bg-dark') || card.classList.contains('rounded-xl')) {
+                    if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.indexOf('bg-dark') !== -1 || card.classList.contains('rounded-xl')) {
                         card.style.paddingTop = '18px';
                         card.style.paddingBottom = '22px';
                     }
-                });
+                }
 
-                // Perbaiki Ukuran & Warna Panah
-                const arrows = clonedWrapper.querySelectorAll('i');
-                arrows.forEach(arrow => {
-                    const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
+                // E. Perbaiki Ukuran & Warna Panah Indikator
+                var arrows = clonedWrapper.querySelectorAll('i');
+                for (var j = 0; j < arrows.length; j++) {
+                    var arrow = arrows[j];
+                    var isArrow = arrow.className.indexOf('arrow') !== -1 || arrow.className.indexOf('caret') !== -1;
                     if (isArrow) {
                         arrow.style.fontSize = '12px';
                         arrow.style.display = 'inline-block';
                         arrow.style.verticalAlign = 'middle';
                         arrow.style.marginRight = '3px';
 
-                        const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
-                        const isDown = arrow.className.includes('down') || parentText.includes('-');
+                        var parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
+                        var isDown = arrow.className.indexOf('down') !== -1 || parentText.indexOf('-') !== -1;
 
                         if (isDown) {
-                            arrow.style.color = '#ef4444'; // Merah
+                            arrow.style.color = '#ef4444'; // Merah (Turun)
                         } else {
-                            arrow.style.color = '#10b981'; // Hijau
+                            arrow.style.color = '#10b981'; // Hijau (Naik)
                         }
                     }
-                });
+                }
             }
         }).then(function(canvas) {
-            console.log('[CaptureSummary] Canvas berhasil dibuat, mengunduh file...');
             if (loadingEl) loadingEl.style.display = 'none';
 
-            const fileNameDate = new Date().toISOString().split('T')[0];
-            const link = document.createElement('a');
-            link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
+            var fileNameDate = new Date().toISOString().split('T')[0];
+            var link = document.createElement('a');
+            link.download = `Summary_Performance_REGION_SUMATERA_${fileNameDate}.png`;
             link.href = canvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();
@@ -3473,16 +3465,16 @@ window.captureSummary = function(btn) {
         }).catch(function(err) {
             console.error('[CaptureSummary] Error html2canvas:', err);
             if (loadingEl) loadingEl.style.display = 'none';
-            alert('Gagal mengambil gambar: ' + (err.message || err));
+            alert('Gagal membuat gambar: ' + (err.message || err));
         });
 
     } catch (err) {
         console.error('[CaptureSummary] Fatal Error:', err);
-        const loadingEl = document.getElementById('loading');
         if (loadingEl) loadingEl.style.display = 'none';
-        alert('Terjadi kesalahan JavaScript: ' + err.message);
+        alert('Terjadi error JavaScript: ' + err.message);
     }
 };
+
 		
         function hideSummaryView() {
             summaryActive = false;
