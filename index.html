@@ -418,7 +418,7 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
+                <button id="summary-capture-btn" onclick="(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-camera sm:mr-1"></i> <span class="hidden sm:inline">Capture</span>
                 </button>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
@@ -3345,22 +3345,22 @@
 		    }
 		    cabangUser = cabangUser.toUpperCase();
 		
-		    // 2. Buat Header Capture Khusus
+		    // 2. Buat Header Capture Khusus dengan Alignment Presisi (Poin 1)
 		    const captureHeader = document.createElement('div');
 		    captureHeader.id = 'capture-header-temp';
-		    captureHeader.className = 'w-full mb-4 p-4 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg flex items-center justify-between';
+		    captureHeader.className = 'w-full mb-5 px-5 py-3.5 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg flex items-center justify-between align-middle';
 		    
 		    // Tanggal As Of saat ini
 		    const headerAsOfEl = document.getElementById('header-as-of');
 		    const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
 		
 		    captureHeader.innerHTML = `
-		        <div>
-		            <h1 class="text-xl md:text-2xl font-bold tracking-wide">Summary Performance - ${cabangUser}</h1>
-		            <p class="text-xs text-purple-200 mt-1">Data Performa & Realisasi As of: <span class="font-semibold text-white">${asOfText}</span></p>
+		        <div class="flex flex-col justify-center">
+		            <h1 class="text-xl md:text-2xl font-bold tracking-wide leading-tight my-0">Summary Performance - ${cabangUser}</h1>
+		            <p class="text-xs text-purple-200 mt-1 mb-0 leading-none">Data Performa & Realisasi As of: <span class="font-semibold text-white">${asOfText}</span></p>
 		        </div>
-		        <div class="text-right">
-		            <span class="text-xs font-semibold px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white uppercase tracking-wider">
+		        <div class="flex items-center justify-center my-auto">
+		            <span class="inline-flex items-center justify-center text-xs font-semibold px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white uppercase tracking-wider leading-none text-center">
 		                Region Sumatera
 		            </span>
 		        </div>
@@ -3369,42 +3369,54 @@
 		    // Sisipkan Header ke paling atas summary-wrapper
 		    summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
 		
-		    // 3. Rapikan Efek Background Icon & Value
+		    // 3. Penyesuaian Style Card & Panah selama Capture (Poin 2, 3, 4, 5)
 		    const cards = summaryWrapper.querySelectorAll('.card-shadow, .bg-white, .dark\\:bg-dark-card');
 		    const originalStyles = [];
 		
-		    cards.forEach((card, idx) => {
-		        // Simpan style asli untuk restore
+		    cards.forEach((card) => {
+		        // Simpan style asli untuk di-restore nanti
 		        originalStyles.push({
-		            position: card.style.position,
-		            overflow: card.style.overflow
+		            el: card,
+		            paddingBottom: card.style.paddingBottom,
+		            overflow: card.style.overflow,
+		            height: card.style.height
 		        });
 		
-		        // Set posisi relatif dan kunci overflow
-		        card.style.position = 'relative';
-		        card.style.overflow = 'hidden';
+		        // Cegah teks/tanggal terpotong (Poin 2 & 4)
+		        card.style.overflow = 'visible';
+		        card.style.height = 'auto';
+		        card.style.paddingBottom = '16px';
 		
-		        // Cari Icon di dalam card
-		        const icon = card.querySelector('i');
-		        if (icon) {
-		            icon.dataset.origClass = icon.className;
-		            icon.dataset.origStyle = icon.getAttribute('style') || '';
-		            
-		            // Posisikan ikon di pojok kanan bawah dengan rapi & transparan tipis
-		            icon.style.fontSize = '3rem';
-		            icon.style.position = 'absolute';
-		            icon.style.right = '8px';
-		            icon.style.bottom = '4px';
-		            icon.style.opacity = '0.08';
-		            icon.style.pointerEvents = 'none';
-		            icon.style.zIndex = '0';
-		        }
+		        // Sesuaikan alignment badge MTD/YTD di tengah (Poin 3)
+		        const badges = card.querySelectorAll('.rounded-full, .rounded-md, .px-2, .py-1');
+		        badges.forEach(b => {
+		            b.style.display = 'inline-flex';
+		            b.style.alignItems = 'center';
+		            b.style.justifyContent = 'center';
+		            b.style.lineHeight = '1.2';
+		        });
 		
-		        // Pastikan isi asli card berada di atas z-index
-		        Array.from(card.children).forEach(child => {
-		            if (!child.classList.contains('capture-bg-value-temp')) {
-		                child.style.position = 'relative';
-		                child.style.zIndex = '2';
+		        // Cari dan sesuaikan Panah Indikator (Poin 5)
+		        const arrows = card.querySelectorAll('i.fa-arrow-up, i.fa-arrow-down, i.fa-long-arrow-alt-up, i.fa-long-arrow-alt-down, i.fa-caret-up, i.fa-caret-down');
+		        arrows.forEach(arrow => {
+		            arrow.dataset.origClass = arrow.className;
+		            arrow.dataset.origStyle = arrow.getAttribute('style') || '';
+		
+		            // Ukuran diperkecil
+		            arrow.style.fontSize = '1.5rem';
+		            arrow.style.fontWeight = 'bold';
+		            arrow.style.opacity = '0.9';
+		
+		            // Cek apakah panah kebawah (merah) atau keatas (hijau)
+		            const isDown = arrow.classList.contains('fa-arrow-down') || 
+		                           arrow.classList.contains('fa-long-arrow-alt-down') || 
+		                           arrow.classList.contains('fa-caret-down') ||
+		                           (arrow.parentElement && arrow.parentElement.innerText.includes('-'));
+		
+		            if (isDown) {
+		                arrow.style.color = '#ef4444'; // Merah
+		            } else {
+		                arrow.style.color = '#10b981'; // Hijau
 		            }
 		        });
 		    });
@@ -3417,30 +3429,28 @@
 		            backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
 		            logging: false
 		        }).then(canvas => {
-		            // Restore Tampilan & Hapus Elemen Temp
+		            // Restore Tampilan Awal & Hapus Elemen Temp
 		            if (captureHeader) captureHeader.remove();
 		            
-		            cards.forEach((card, idx) => {
-		                if (originalStyles[idx]) {
-		                    card.style.position = originalStyles[idx].position;
-		                    card.style.overflow = originalStyles[idx].overflow;
-		                }
-		                
-		                const icon = card.querySelector('i');
-		                if (icon && icon.dataset.origClass !== undefined) {
-		                    icon.className = icon.dataset.origClass;
-		                    icon.setAttribute('style', icon.dataset.origStyle);
-		                }
+		            originalStyles.forEach(item => {
+		                item.el.style.paddingBottom = item.paddingBottom;
+		                item.el.style.overflow = item.overflow;
+		                item.el.style.height = item.height;
+		            });
 		
-		                Array.from(card.children).forEach(child => {
-		                    child.style.position = '';
-		                    child.style.zIndex = '';
+		            cards.forEach((card) => {
+		                const arrows = card.querySelectorAll('i');
+		                arrows.forEach(arrow => {
+		                    if (arrow.dataset.origClass !== undefined) {
+		                        arrow.className = arrow.dataset.origClass;
+		                        arrow.setAttribute('style', arrow.dataset.origStyle);
+		                    }
 		                });
 		            });
 		
 		            if (loadingEl) loadingEl.style.display = 'none';
 		
-		            // Download Gambar
+		            // Download Gambar PNG
 		            const link = document.createElement('a');
 		            const fileNameDate = new Date().toISOString().split('T')[0];
 		            link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
