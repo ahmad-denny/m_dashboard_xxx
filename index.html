@@ -3504,8 +3504,10 @@
             const download = (dataUrl) => {
                 const link = document.createElement('a');
                 const timestamp = new Date().toISOString().slice(0, 10);
-                link.download = `Summary_Performance_${timestamp}.png`;
-                link.href = dataUrl;
+//                link.download = `Summary_Performance_${timestamp}.png`;
+				const userLoc = document.getElementById('userLocChip')?.textContent.trim() || 'default';
+				link.download = `Summary_Performance_${userLoc}.png`;				
+				link.href = dataUrl;
                 link.click();
             };
 
