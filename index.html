@@ -3322,141 +3322,166 @@
             }
         }
 
+// Didaftarkan langsung ke objek window agar dijamin bisa dipanggil onclick
 window.captureSummary = function(btn) {
-    console.log("Proses captureSummary dimulai...");
+    console.log('[CaptureSummary] Tombol berhasil diklik!');
 
-    // 1. Cek keberadaan library html2canvas
-    if (typeof html2canvas === 'undefined') {
-        alert("Library 'html2canvas' belum dimuat di halaman. Pastikan tag script html2canvas sudah terpasang.");
-        return;
-    }
-
-    const summaryWrapper = document.getElementById('summary-wrapper');
-    if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Tidak Ada Tampilan Summary',
-                text: 'Silakan buka menu Summary Performance terlebih dahulu.',
-                confirmColor: '#6441A5'
-            });
-        } else {
-            alert('Silakan buka menu Summary Performance terlebih dahulu.');
+    try {
+        // 1. Validasi Elemen Target Summary
+        const summaryWrapper = document.getElementById('summary-wrapper');
+        if (!summaryWrapper) {
+            alert("Elemen dengan ID 'summary-wrapper' tidak ditemukan di halaman ini!");
+            return;
         }
-        return;
-    }
 
-    // Tampilkan Indikator Loading
-    const loadingEl = document.getElementById('loading');
-    if (loadingEl) loadingEl.style.display = 'flex';
+        if (summaryWrapper.classList.contains('hidden') || summaryWrapper.offsetParent === null) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tampilan Tidak Aktif',
+                    text: 'Silakan buka menu Summary Performance terlebih dahulu.',
+                    confirmColor: '#6441A5'
+                });
+            } else {
+                alert('Silakan buka menu Summary Performance terlebih dahulu.');
+            }
+            return;
+        }
 
-    // 2. Eksekusi Capture dengan Fitur bawaan 'onclone'
-    html2canvas(summaryWrapper, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
-        logging: false,
-        windowWidth: 1400, // Mengunci emulasi layar ke Desktop View
-        onclone: function(clonedDoc) {
-            const clonedWrapper = clonedDoc.getElementById('summary-wrapper');
-            if (!clonedWrapper) return;
+        // 2. Cek Keberadaan html2canvas
+        if (typeof html2canvas === 'undefined') {
+            alert("Library 'html2canvas' tidak terdeteksi! Pastikan CDN html2canvas sudah terpasang di bagian <head> atau sebelum tag </body>.");
+            return;
+        }
 
-            // A. KUNCI TAMPILAN DESKTOP (1350px) agar layout tetap 4 kolom
-            clonedWrapper.style.width = '1350px';
-            clonedWrapper.style.minWidth = '1350px';
-            clonedWrapper.style.maxWidth = '1350px';
-            clonedWrapper.style.boxSizing = 'border-box';
-            clonedWrapper.style.margin = '0 auto';
-            clonedWrapper.style.padding = '20px';
+        // 3. Tampilkan Loading
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'flex';
 
-            // B. Tambahkan Header Capture Khusus di Dokumen Clone
-            let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION SUMATERA';
-            if (typeof cleanName === 'function') cabangUser = cleanName(cabangUser);
-            cabangUser = cabangUser.toUpperCase();
+        // 4. Ambil Cabang dengan Aman
+        let cabangUser = 'REGION SUMATERA';
+        try {
+            if (typeof currentUserCabang !== 'undefined' && currentUserCabang) {
+                cabangUser = currentUserCabang;
+            }
+            if (typeof cleanName === 'function') {
+                cabangUser = cleanName(cabangUser);
+            }
+        } catch (e) {
+            console.warn('[CaptureSummary] Gagal mengambil variabel cabangUser, menggunakan default.', e);
+        }
+        cabangUser = String(cabangUser).toUpperCase();
 
-            const headerAsOfEl = document.getElementById('header-as-of');
-            const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+        const headerAsOfEl = document.getElementById('header-as-of');
+        const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
 
-            const captureHeader = clonedDoc.createElement('div');
-            captureHeader.style.cssText = `
-                width: 100% !important;
-                margin-bottom: 20px !important;
-                padding: 16px 24px !important;
-                border-radius: 12px !important;
-                background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important;
-                color: #ffffff !important;
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                box-sizing: border-box !important;
-            `;
-            captureHeader.innerHTML = `
-                <div style="display: flex; flex-direction: column; justify-content: center;">
-                    <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
-                    <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
-                </div>
-                <div style="display: flex; align-items: center; justify-content: center;">
-                    <span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
-                        Region Sumatera
-                    </span>
-                </div>
-            `;
-            clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
+        // 5. Eksekusi html2canvas Menggunakan Callback 'onclone'
+        html2canvas(summaryWrapper, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: (document.body && document.body.classList.contains('dark')) ? '#0f172a' : '#f8fafc',
+            logging: true,
+            windowWidth: 1400, // Mengunci tampilan emulasi agar tetap 4 kolom Desktop
+            onclone: function(clonedDoc) {
+                console.log('[CaptureSummary] Memproses dokumen clone...');
+                const clonedWrapper = clonedDoc.getElementById('summary-wrapper');
+                if (!clonedWrapper) return;
 
-            // C. Buka Kuncian Height & Overflow Card agar Teks Tidak Terpotong
-            const cards = clonedWrapper.querySelectorAll('div');
-            cards.forEach(card => {
-                card.style.overflow = 'visible';
-                card.style.height = 'auto';
-                card.style.maxHeight = 'none';
+                // Kunci Lebar Desktop (1350px) agar layout tidak jatuh menjadi 2 kolom
+                clonedWrapper.style.width = '1350px';
+                clonedWrapper.style.minWidth = '1350px';
+                clonedWrapper.style.maxWidth = '1350px';
+                clonedWrapper.style.boxSizing = 'border-box';
+                clonedWrapper.style.margin = '0 auto';
+                clonedWrapper.style.padding = '20px';
 
-                if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.includes('bg-dark') || card.classList.contains('rounded-xl')) {
-                    card.style.paddingTop = '18px';
-                    card.style.paddingBottom = '22px';
-                }
-            });
+                // Tambahkan Header Capture Khusus
+                const captureHeader = clonedDoc.createElement('div');
+                captureHeader.style.cssText = `
+                    width: 100% !important;
+                    margin-bottom: 20px !important;
+                    padding: 16px 24px !important;
+                    border-radius: 12px !important;
+                    background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important;
+                    color: #ffffff !important;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    box-sizing: border-box !important;
+                `;
+                captureHeader.innerHTML = `
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
+                        <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
+                            Region Sumatera
+                        </span>
+                    </div>
+                `;
+                clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
 
-            // D. Perbaiki Posisi & Pewarnaan Panah
-            const arrows = clonedWrapper.querySelectorAll('i');
-            arrows.forEach(arrow => {
-                const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
-                if (isArrow) {
-                    arrow.style.fontSize = '12px';
-                    arrow.style.display = 'inline-block';
-                    arrow.style.verticalAlign = 'middle';
-                    arrow.style.marginRight = '3px';
+                // Perbaiki Padding & Overflow Card agar Teks Tidak Terpotong
+                const cards = clonedWrapper.querySelectorAll('div');
+                cards.forEach(card => {
+                    card.style.overflow = 'visible';
+                    card.style.height = 'auto';
+                    card.style.maxHeight = 'none';
 
-                    const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
-                    const isDown = arrow.className.includes('down') || parentText.includes('-');
-
-                    if (isDown) {
-                        arrow.style.color = '#ef4444'; // Merah
-                    } else {
-                        arrow.style.color = '#10b981'; // Hijau
+                    if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.includes('bg-dark') || card.classList.contains('rounded-xl')) {
+                        card.style.paddingTop = '18px';
+                        card.style.paddingBottom = '22px';
                     }
-                }
-            });
-        }
-    }).then(function(canvas) {
-        if (loadingEl) loadingEl.style.display = 'none';
+                });
 
-        // Download Hasil Gambar PNG
-        let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION';
-        if (typeof cleanName === 'function') cabangUser = cleanName(cabangUser);
-        const fileNameDate = new Date().toISOString().split('T')[0];
+                // Perbaiki Ukuran & Warna Panah
+                const arrows = clonedWrapper.querySelectorAll('i');
+                arrows.forEach(arrow => {
+                    const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
+                    if (isArrow) {
+                        arrow.style.fontSize = '12px';
+                        arrow.style.display = 'inline-block';
+                        arrow.style.verticalAlign = 'middle';
+                        arrow.style.marginRight = '3px';
 
-        const link = document.createElement('a');
-        link.download = `Summary_Performance_${cabangUser.toUpperCase()}_${fileNameDate}.png`;
-        link.href = canvas.toDataURL('image/png');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }).catch(function(err) {
-        console.error('Error captureSummary:', err);
+                        const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
+                        const isDown = arrow.className.includes('down') || parentText.includes('-');
+
+                        if (isDown) {
+                            arrow.style.color = '#ef4444'; // Merah
+                        } else {
+                            arrow.style.color = '#10b981'; // Hijau
+                        }
+                    }
+                });
+            }
+        }).then(function(canvas) {
+            console.log('[CaptureSummary] Canvas berhasil dibuat, mengunduh file...');
+            if (loadingEl) loadingEl.style.display = 'none';
+
+            const fileNameDate = new Date().toISOString().split('T')[0];
+            const link = document.createElement('a');
+            link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        }).catch(function(err) {
+            console.error('[CaptureSummary] Error html2canvas:', err);
+            if (loadingEl) loadingEl.style.display = 'none';
+            alert('Gagal mengambil gambar: ' + (err.message || err));
+        });
+
+    } catch (err) {
+        console.error('[CaptureSummary] Fatal Error:', err);
+        const loadingEl = document.getElementById('loading');
         if (loadingEl) loadingEl.style.display = 'none';
-        alert('Gagal mengambil gambar: ' + err.message);
-    });
+        alert('Terjadi kesalahan JavaScript: ' + err.message);
+    }
 };
 		
         function hideSummaryView() {
