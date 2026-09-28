@@ -3478,9 +3478,10 @@
                     pixelRatio: 2,
                     backgroundColor: bgColor,
                     cacheBust: true,
-                    width: target.offsetWidth,
+                    // Lebar gambar = lebar konten di layar + padding kiri & kanan, agar kolom paling kanan tidak terpotong
+                    width: target.offsetWidth + pad * 2,
                     height: target.offsetHeight + pad * 2 - (parseFloat(getComputedStyle(target).paddingTop) + parseFloat(getComputedStyle(target).paddingBottom)),
-                    style: { padding: pad + 'px', margin: '0' }
+                    style: { padding: pad + 'px', margin: '0', boxSizing: 'border-box', width: (target.offsetWidth + pad * 2) + 'px' }
                 };
                 // Font Awesome & Plus Jakarta Sans di-embed manual supaya ikon tidak tampil sebagai kotak
                 if (fontCss && fontCss.trim()) opts.fontEmbedCSS = fontCss;
