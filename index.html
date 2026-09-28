@@ -3322,63 +3322,175 @@
             }
         }
 
-        function captureSummary(btn) {
-            if (typeof html2canvas === 'undefined') {
-                alert("Library screenshot belum siap. Silakan refresh halaman.");
-                return;
+window.captureSummary = function(btn) {
+    try {
+        const summaryWrapper = document.getElementById('summary-wrapper');
+        if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Ada Tampilan Summary',
+                    text: 'Silakan buka menu Summary Performance terlebih dahulu.',
+                    confirmColor: '#6441A5'
+                });
+            } else {
+                alert('Silakan buka menu Summary Performance terlebih dahulu.');
             }
-            const target = document.getElementById('summary-wrapper');
-            if (!target || !target.innerHTML.trim()) return;
-
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin sm:mr-1"></i> <span class="hidden sm:inline">Processing...</span>';
-            btn.disabled = true;
-
-            const isDark = document.body.classList.contains('dark');
-            const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten
-
-            // Beri ruang di tepi hasil capture, dikembalikan setelah selesai
-            const prevPadding = target.style.padding;
-            target.style.padding = '16px';
-
-            html2canvas(target, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: bgColor,
-                logging: false,
-                windowWidth: target.scrollWidth,
-                windowHeight: target.scrollHeight,
-                // html2canvas sering memotong teks pada elemen ber-overflow:hidden (class "truncate")
-                // karena posisi teks bergeser sedikit dari kotaknya. Perbaikan hanya berlaku di salinan
-                // (clone) untuk gambar capture, tampilan asli di layar tidak berubah.
-                onclone: (clonedDoc) => {
-                    const fix = clonedDoc.createElement('style');
-                    fix.textContent = `
-                        #summary-wrapper *, #summary-wrapper *::before, #summary-wrapper *::after { transition: none !important; animation: none !important; }
-                        #summary-wrapper .truncate { overflow: visible !important; text-overflow: clip !important; }
-                        #summary-wrapper p.truncate { white-space: normal !important; line-height: 1.35 !important; padding: 1px 0 !important; }
-                        #summary-wrapper h3.truncate { line-height: 1.4 !important; padding: 1px 0 !important; }
-                        #summary-wrapper span.truncate { line-height: 1.5 !important; padding: 1px 0 !important; }
-                        #summary-wrapper .mom-badge { line-height: 1.5 !important; padding-top: 3px !important; padding-bottom: 3px !important; }
-                    `;
-                    clonedDoc.head.appendChild(fix);
-                }
-            }).then(canvas => {
-                const link = document.createElement('a');
-                const timestamp = new Date().toISOString().slice(0, 10);
-                link.download = `Summary_Performance_${timestamp}.png`;
-                link.href = canvas.toDataURL("image/png", 1.0);
-                link.click();
-            }).catch(err => {
-                console.error("Capture Error:", err);
-                alert("Gagal mengambil screenshot: " + err.message);
-            }).finally(() => {
-                target.style.padding = prevPadding;
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            });
+            return;
         }
 
+        // Tampilkan Indikator Loading
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'flex';
+
+        // 1. Ambil Nama Cabang User Login
+        let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION SUMATERA';
+        if (typeof cleanName === 'function') {
+            cabangUser = cleanName(cabangUser);
+        }
+        cabangUser = cabangUser.toUpperCase();
+
+        // 2. Buat Header Capture Khusus
+        let captureHeader = document.getElementById('capture-header-temp');
+        if (captureHeader) captureHeader.remove();
+
+        captureHeader = document.createElement('div');
+        captureHeader.id = 'capture-header-temp';
+        captureHeader.style.cssText = 'width: 100% !important; margin-bottom: 20px !important; padding: 16px 24px !important; border-radius: 12px !important; background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important; color: #ffffff !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; display: flex !important; align-items: center !important; justify-content: space-between !important; box-sizing: border-box !important;';
+
+        const headerAsOfEl = document.getElementById('header-as-of');
+        const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+
+        captureHeader.innerHTML = `
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
+                <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 11px; font-weight: 600; padding: 8px 18px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
+                    Region Sumatera
+                </span>
+            </div>
+        `;
+
+        summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
+
+        // 3. Simpan State Asli & Sesuaikan Style Langsung ke Inline Element
+        const cards = summaryWrapper.querySelectorAll('div');
+        const savedStyles = [];
+
+        cards.forEach(el => {
+            // Jika elemen memiliki class card / background tempat data
+            if (el.classList.contains('card-shadow') || el.classList.contains('bg-white') || el.className.includes('bg-dark') || el.className.includes('rounded')) {
+                savedStyles.push({
+                    el: el,
+                    overflow: el.style.overflow,
+                    paddingTop: el.style.paddingTop,
+                    paddingBottom: el.style.paddingBottom,
+                    height: el.style.height
+                });
+
+                // Terapkan penyesuaian langsung agar teks tidak terpotong
+                el.style.overflow = 'visible';
+                el.style.height = 'auto';
+                if (el.childElementCount > 1) {
+                    el.style.paddingTop = '16px';
+                    el.style.paddingBottom = '20px';
+                }
+            }
+        });
+
+        // 4. Perbaiki Ukuran & Warna Panah
+        const arrows = summaryWrapper.querySelectorAll('i');
+        const savedArrowStyles = [];
+
+        arrows.forEach(arrow => {
+            const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
+            if (isArrow) {
+                savedArrowStyles.push({
+                    el: arrow,
+                    fontSize: arrow.style.fontSize,
+                    color: arrow.style.color,
+                    display: arrow.style.display,
+                    verticalAlign: arrow.style.verticalAlign
+                });
+
+                // Set ukuran kecil proporsional
+                arrow.style.fontSize = '13px';
+                arrow.style.display = 'inline-block';
+                arrow.style.verticalAlign = 'middle';
+                arrow.style.marginRight = '3px';
+
+                // Tentukan Warna Panah
+                const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
+                const isDown = arrow.className.includes('down') || parentText.includes('-');
+
+                if (isDown) {
+                    arrow.style.color = '#ef4444'; // Merah
+                } else {
+                    arrow.style.color = '#10b981'; // Hijau
+                }
+            }
+        });
+
+        // 5. Eksekusi Capture Menggunakan html2canvas
+        setTimeout(function() {
+            if (typeof html2canvas === 'undefined') {
+                alert('Library html2canvas belum dimuat pada halaman.');
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (captureHeader) captureHeader.remove();
+                return;
+            }
+
+            html2canvas(summaryWrapper, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: (document.body && document.body.classList.contains('dark')) ? '#0f172a' : '#f8fafc',
+                logging: false
+            }).then(function(canvas) {
+                // Restore tampilan asli setelah selesai capture
+                if (captureHeader) captureHeader.remove();
+
+                savedStyles.forEach(item => {
+                    item.el.style.overflow = item.overflow;
+                    item.el.style.paddingTop = item.paddingTop;
+                    item.el.style.paddingBottom = item.paddingBottom;
+                    item.el.style.height = item.height;
+                });
+
+                savedArrowStyles.forEach(item => {
+                    item.el.style.fontSize = item.fontSize;
+                    item.el.style.color = item.color;
+                    item.el.style.display = item.display;
+                    item.el.style.verticalAlign = item.verticalAlign;
+                });
+
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                // Download Gambar
+                const link = document.createElement('a');
+                const fileNameDate = new Date().toISOString().split('T')[0];
+                link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
+                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(function(err) {
+                console.error('Error html2canvas:', err);
+                if (captureHeader) captureHeader.remove();
+                if (loadingEl) loadingEl.style.display = 'none';
+                alert('Gagal mengambil gambar: ' + err.message);
+            });
+        }, 200);
+
+    } catch (err) {
+        console.error('Fatal error captureSummary:', err);
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        alert('Terjadi kesalahan script: ' + err.message);
+    }
+};
+		
         function hideSummaryView() {
             summaryActive = false;
             ['kpi-container', 'charts-wrapper', 'table-card-container', 'table-position-placeholder'].forEach(id => {
