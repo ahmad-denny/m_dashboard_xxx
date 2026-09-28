@@ -1026,15 +1026,15 @@
 
         // --- DATA HANDLING ---
         const csvFilesConfig = [
-            { name: "Financing Booking", file: "finbook.csv", icon: "fa-users" },
-            { name: "Financing Outstanding", file: "finos.csv", icon: "fa-hand-holding-dollar" },
-            { name: "Funding Reguler", file: "funding.csv", icon: "fa-chart-line" },
-            { name: "Funding Priority", file: "priority.csv", icon: "fa-vault" },
-            { name: "Hajj Portion", file: "haji.csv", icon: "fa-kaaba" },
-            { name: "QRIS Muamalat", file: "qris.csv", icon: "fa-qrcode" },
-            { name: "Muamalat DIN", file: "mdin.csv", icon: "fa-mobile-alt" },
-            { name: "Non Performing Loan", file: "coll.csv", icon: "fa-gauge" },
-            { name: "Sunlife Bancassurance", file: "sli.csv", icon: "fa-umbrella" },
+            { name: "FinBook", file: "finbook.csv", icon: "fa-users" },
+            { name: "FinOS", file: "finos.csv", icon: "fa-hand-holding-dollar" },
+            { name: "Funding", file: "funding.csv", icon: "fa-chart-line" },
+            { name: "Priority", file: "priority.csv", icon: "fa-vault" },
+            { name: "Hajj", file: "haji.csv", icon: "fa-kaaba" },
+            { name: "Qris", file: "qris.csv", icon: "fa-qrcode" },
+            { name: "MDin", file: "mdin.csv", icon: "fa-mobile-alt" },
+            { name: "NPF", file: "coll.csv", icon: "fa-gauge" },
+            { name: "SLI", file: "sli.csv", icon: "fa-umbrella" },
             { name: "Summary Performance", file: "summary", icon: "fa-gauge-high", isSummary: true }
         ];
         
@@ -3418,24 +3418,53 @@
             });
         }
 
+        // Logo BMI untuk header capture: dimuat sebagai data URI agar pasti ikut ter-render di gambar
+        let _summaryLogoPromise = null;
+        function getSummaryLogoDataUrl() {
+            if (_summaryLogoPromise) return _summaryLogoPromise;
+            const src = 'img/BMI.png';
+            const viaFetch = () => fetch(src).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+                .then(blob => new Promise((ok, fail) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = fail; fr.readAsDataURL(blob); }));
+            const viaCanvas = () => new Promise((ok, fail) => {
+                const im = new Image();
+                im.onload = () => {
+                    try {
+                        const c = document.createElement('canvas');
+                        c.width = im.naturalWidth; c.height = im.naturalHeight;
+                        c.getContext('2d').drawImage(im, 0, 0);
+                        ok(c.toDataURL('image/png'));
+                    } catch (e) { fail(e); }
+                };
+                im.onerror = fail;
+                im.src = src;
+            });
+            _summaryLogoPromise = viaFetch().catch(viaCanvas).catch(e => { console.warn('Logo BMI gagal dimuat:', e); return null; });
+            _summaryLogoPromise.then(v => { if (!v) _summaryLogoPromise = null; });
+            return _summaryLogoPromise;
+        }
+
         // Header title khusus hasil capture (dipasang sementara, dilepas lagi setelah capture)
         function buildSummaryCaptureHeader(isDark) {
             const title = (document.getElementById('dashboard-main-title')?.innerText || 'Summary Performance').trim();
             const asOf = (document.getElementById('header-as-of')?.innerText || '').trim();
+            let user = (document.getElementById('userNameChip')?.textContent || '').trim();
+            if (user === '-') user = '';
             const cTitle = isDark ? '#ffffff' : '#1e293b';
-            const cSub = isDark ? '#94a3b8' : '#94a3b8';
+            const cSub = '#94a3b8';
             const cAccent = isDark ? '#9F7ED8' : '#6441A5';
             const cLine = isDark ? '#334155' : '#e2e8f0';
             const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
             const el = document.createElement('div');
             el.id = 'summary-capture-header';
-            el.style.cssText = `display:flex;align-items:center;gap:12px;padding:0 0 12px 0;margin:0 0 4px 0;border-bottom:2px solid ${cLine};`;
+            el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:0 0 4px 0;border-bottom:2px solid ${cLine};`;
             el.innerHTML = `
                 <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>
+                <img id="summary-capture-logo" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
                 <div style="min-width:0;">
                     <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(title)}</div>
                     <div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">As of <span style="font-weight:600;color:${cAccent};">${esc(asOf || '-')}</span></div>
-                </div>`;
+                </div>
+                ${user ? `<div style="margin-left:auto;align-self:flex-end;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
             return el;
         }
 
@@ -3461,6 +3490,14 @@
             const capHeader = buildSummaryCaptureHeader(isDark);
             target.insertBefore(capHeader, target.firstChild);
             const removeCapHeader = () => { if (capHeader.parentNode) capHeader.parentNode.removeChild(capHeader); };
+            // Isi logo (data URI) lalu tunggu siap; jika gagal, logo dibuang saja
+            const prepareLogo = () => getSummaryLogoDataUrl().then(dataUrl => {
+                const img = capHeader.querySelector('#summary-capture-logo');
+                if (!img) return;
+                if (!dataUrl) { img.remove(); return; }
+                img.src = dataUrl;
+                return (img.decode ? img.decode() : Promise.resolve()).catch(() => {});
+            });
             // Ganti ikon jadi SVG selama proses capture
             const restoreIcons = swapSummaryIconsToSvg(target);
 
@@ -3505,13 +3542,13 @@
                   .finally(() => { target.style.padding = prevPadding; });
             };
 
-            const run = (typeof htmlToImage !== 'undefined')
+            const run = prepareLogo().then(() => (typeof htmlToImage !== 'undefined')
                 ? withHtmlToImage().catch(err => {
                     console.warn('html-to-image gagal, memakai html2canvas:', err);
                     if (typeof html2canvas === 'undefined') throw err;
                     return withHtml2Canvas();
                 })
-                : withHtml2Canvas();
+                : withHtml2Canvas());
 
             run.then(download)
                .catch(err => {
