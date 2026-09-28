@@ -3347,7 +3347,22 @@
                 backgroundColor: bgColor,
                 logging: false,
                 windowWidth: target.scrollWidth,
-                windowHeight: target.scrollHeight
+                windowHeight: target.scrollHeight,
+                // html2canvas sering memotong teks pada elemen ber-overflow:hidden (class "truncate")
+                // karena posisi teks bergeser sedikit dari kotaknya. Perbaikan hanya berlaku di salinan
+                // (clone) untuk gambar capture, tampilan asli di layar tidak berubah.
+                onclone: (clonedDoc) => {
+                    const fix = clonedDoc.createElement('style');
+                    fix.textContent = `
+                        #summary-wrapper *, #summary-wrapper *::before, #summary-wrapper *::after { transition: none !important; animation: none !important; }
+                        #summary-wrapper .truncate { overflow: visible !important; text-overflow: clip !important; }
+                        #summary-wrapper p.truncate { white-space: normal !important; line-height: 1.35 !important; padding: 1px 0 !important; }
+                        #summary-wrapper h3.truncate { line-height: 1.4 !important; padding: 1px 0 !important; }
+                        #summary-wrapper span.truncate { line-height: 1.5 !important; padding: 1px 0 !important; }
+                        #summary-wrapper .mom-badge { line-height: 1.5 !important; padding-top: 3px !important; padding-bottom: 3px !important; }
+                    `;
+                    clonedDoc.head.appendChild(fix);
+                }
             }).then(canvas => {
                 const link = document.createElement('a');
                 const timestamp = new Date().toISOString().slice(0, 10);
