@@ -3336,43 +3336,139 @@
             btn.disabled = true;
 
             const isDark = document.body.classList.contains('dark');
-            const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten
-            const pad = 16; // ruang di tepi hasil capture
+            const bgColor = isDark ? '#0f172a' : '#f8fafc';
+            const cardColor = isDark ? '#1e293b' : '#ffffff';
+            const titleColor = isDark ? '#f1f5f9' : '#1e293b';
+            const subTitleColor = isDark ? '#94a3b8' : '#64748b';
+            const accentColor = '#6441A5';
+            const pad = 16;
+
+            // Cabang berasal langsung dari user yang sedang login.
+            // currentUserCabang sudah diisi dari user.cabang pada event authReady.
+            const branchTitle = (typeof currentUserCabang !== 'undefined' && currentUserCabang)
+                ? String(currentUserCabang).trim()
+                : 'REGION';
+
+            const titleEl = document.getElementById('dashboard-main-title');
+            const headerTitle = titleEl?.textContent?.trim() || 'Performance Analytics';
+            const asOfEl = document.getElementById('header-as-of');
+            const headerAsOf = asOfEl?.textContent?.trim() || '';
 
             const download = (dataUrl) => {
                 const link = document.createElement('a');
                 const timestamp = new Date().toISOString().slice(0, 10);
-                link.download = `Summary_Performance_${timestamp}.png`;
+                const safeBranch = branchTitle.replace(/[^a-z0-9_-]+/gi, '_').replace(/^_+|_+$/g, '');
+                link.download = `Summary_Performance_${safeBranch || 'REGION'}_${timestamp}.png`;
                 link.href = dataUrl;
                 link.click();
             };
 
-            // Utama: html-to-image (dirender langsung oleh browser, posisi teks/ikon sama persis dengan layar).
-            const withHtmlToImage = () => htmlToImage.toPng(target, {
+            // Container khusus capture agar Header Title tidak mengubah tampilan dashboard.
+            const captureWrapper = document.createElement('div');
+            captureWrapper.style.position = 'fixed';
+            captureWrapper.style.left = '-100000px';
+            captureWrapper.style.top = '0';
+            captureWrapper.style.width = `${target.offsetWidth}px`;
+            captureWrapper.style.background = bgColor;
+            captureWrapper.style.color = titleColor;
+            captureWrapper.style.padding = `${pad}px`;
+            captureWrapper.style.boxSizing = 'border-box';
+            captureWrapper.style.fontFamily = "'Plus Jakarta Sans', 'Inter', sans-serif";
+
+            // Header hasil capture: judul + cabang user login.
+            const captureHeader = document.createElement('div');
+            captureHeader.style.background = cardColor;
+            captureHeader.style.borderRadius = '10px';
+            captureHeader.style.padding = '14px 16px';
+            captureHeader.style.marginBottom = '12px';
+            captureHeader.style.borderLeft = `4px solid ${accentColor}`;
+            captureHeader.style.boxShadow = isDark
+                ? '0 4px 10px rgba(0,0,0,0.25)'
+                : '0 4px 10px rgba(0,0,0,0.06)';
+            captureHeader.style.boxSizing = 'border-box';
+
+            const title = document.createElement('div');
+            title.textContent = headerTitle;
+            title.style.fontSize = '18px';
+            title.style.fontWeight = '700';
+            title.style.lineHeight = '1.25';
+            title.style.color = titleColor;
+            title.style.margin = '0';
+            captureHeader.appendChild(title);
+
+            const branch = document.createElement('div');
+            branch.textContent = `Cabang: ${branchTitle}`;
+            branch.style.fontSize = '12px';
+            branch.style.fontWeight = '600';
+            branch.style.marginTop = '5px';
+            branch.style.color = accentColor;
+            branch.style.lineHeight = '1.4';
+            captureHeader.appendChild(branch);
+
+            if (headerAsOf) {
+                const subtitle = document.createElement('div');
+                subtitle.innerHTML = '<span style="font-style:italic;">As of </span>' +
+                    `<span style="font-weight:600;color:${accentColor};">${headerAsOf}</span>`;
+                subtitle.style.fontSize = '10px';
+                subtitle.style.marginTop = '3px';
+                subtitle.style.color = subTitleColor;
+                subtitle.style.lineHeight = '1.4';
+                captureHeader.appendChild(subtitle);
+            }
+
+            captureWrapper.appendChild(captureHeader);
+
+            // Clone summary agar dashboard asli tidak ikut berubah.
+            const summaryClone = target.cloneNode(true);
+            summaryClone.classList.remove('hidden');
+            summaryClone.style.display = 'block';
+            summaryClone.style.width = '100%';
+            summaryClone.style.margin = '0';
+            summaryClone.style.padding = '0';
+            captureWrapper.appendChild(summaryClone);
+
+            document.body.appendChild(captureWrapper);
+
+            const captureWidth = captureWrapper.offsetWidth;
+            const captureHeight = captureWrapper.scrollHeight;
+
+            const withHtmlToImage = () => htmlToImage.toPng(captureWrapper, {
                 pixelRatio: 2,
                 backgroundColor: bgColor,
                 cacheBust: true,
-                width: target.offsetWidth,
-                height: target.offsetHeight + pad * 2 - (parseFloat(getComputedStyle(target).paddingTop) + parseFloat(getComputedStyle(target).paddingBottom)),
-                style: { padding: pad + 'px', margin: '0' }
+                width: captureWidth,
+                height: captureHeight,
+                style: {
+                    margin: '0',
+                    padding: `${pad}px`,
+                    boxSizing: 'border-box'
+                }
             });
 
-            // Cadangan: html2canvas, dengan lebar layout yang sama seperti layar agar tata letak tidak berubah.
-            const withHtml2Canvas = () => {
-                const prevPadding = target.style.padding;
-                target.style.padding = pad + 'px';
-                return html2canvas(target, {
-                    scale: 2, useCORS: true, backgroundColor: bgColor, logging: false,
-                    windowWidth: document.documentElement.clientWidth,
-                    windowHeight: Math.max(target.scrollHeight + 400, document.documentElement.clientHeight),
-                    onclone: (clonedDoc) => {
-                        const fix = clonedDoc.createElement('style');
-                        fix.textContent = '#summary-wrapper .truncate { overflow: visible !important; text-overflow: clip !important; } #summary-wrapper * { transition: none !important; }';
-                        clonedDoc.head.appendChild(fix);
-                    }
-                }).then(canvas => canvas.toDataURL('image/png', 1.0))
-                  .finally(() => { target.style.padding = prevPadding; });
-            };
+            const withHtml2Canvas = () => html2canvas(captureWrapper, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: bgColor,
+                logging: false,
+                width: captureWidth,
+                height: captureHeight,
+                windowWidth: Math.max(document.documentElement.clientWidth, captureWidth),
+                windowHeight: Math.max(captureHeight + 400, document.documentElement.clientHeight),
+                onclone: (clonedDoc) => {
+                    const fix = clonedDoc.createElement('style');
+                    fix.textContent = `
+                        #summary-wrapper .truncate {
+                            overflow: visible !important;
+                            text-overflow: clip !important;
+                        }
+                        #summary-wrapper * {
+                            transition: none !important;
+                            animation: none !important;
+                        }
+                    `;
+                    clonedDoc.head.appendChild(fix);
+                }
+            }).then(canvas => canvas.toDataURL('image/png', 1.0));
 
             const run = (typeof htmlToImage !== 'undefined')
                 ? withHtmlToImage().catch(err => {
@@ -3383,14 +3479,17 @@
                 : withHtml2Canvas();
 
             run.then(download)
-               .catch(err => {
+                .catch(err => {
                     console.error("Capture Error:", err);
                     alert("Gagal mengambil screenshot: " + (err && err.message ? err.message : err));
-               })
-               .finally(() => {
+                })
+                .finally(() => {
+                    if (captureWrapper && captureWrapper.parentNode) {
+                        captureWrapper.parentNode.removeChild(captureWrapper);
+                    }
                     btn.innerHTML = originalContent;
                     btn.disabled = false;
-               });
+                });
         }
 
         function hideSummaryView() {
