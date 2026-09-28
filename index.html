@@ -424,7 +424,7 @@
                 <button onclick="resetFilters()" title="Reset" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-rotate-right sm:mr-1"></i> <span class="hidden sm:inline">Reset</span>
                 </button>
-                <button onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
+                <button id="compare-btn" onclick="openExportModal()" title="Compare" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-table sm:mr-1"></i> <span class="hidden sm:inline">Compare</span>
                 </button>
                 <div id="userInfoChip" class="hidden md:flex user-info-reference">
@@ -548,6 +548,7 @@
 
         <!-- CONTENT AREA -->
         <div class="flex-1 overflow-y-auto px-3 md:px-6 pt-0 pb-3 md:pb-6 space-y-3 md:space-y-6" id="dashboard-content">
+            <div id="summary-wrapper" class="hidden space-y-4 md:space-y-6 pt-3 md:pt-6 pb-4"></div>
             <div id="charts-wrapper" class="space-y-3 md:space-y-6 mb-4 md:mb-6">
                 <!-- ROW 1: TREND CHART & COMPOSITION CHART (1 BARIS) -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
@@ -1029,10 +1030,12 @@
             { name: "Qris", file: "qris.csv", icon: "fa-qrcode" },
             { name: "MDin", file: "mdin.csv", icon: "fa-mobile-alt" },
             { name: "NPF", file: "coll.csv", icon: "fa-gauge" },
-            { name: "SLI", file: "sli.csv", icon: "fa-umbrella" }
+            { name: "SLI", file: "sli.csv", icon: "fa-umbrella" },
+            { name: "Summary Performance", file: "summary", icon: "fa-gauge-high", isSummary: true }
         ];
         
         let currentActiveFileIndex = 0;
+        let summaryActive = false;
         let rawData = [];
         let filteredData = [];
         let charts = {};
@@ -1070,7 +1073,9 @@
         function buildCSVTabs() {
             const container = document.getElementById('csv-tabs-container');
             container.innerHTML = '';
-            csvFilesConfig.forEach((cfg, idx) => {
+            const tabOrder = csvFilesConfig.map((_, i) => i).sort((a, b) => (csvFilesConfig[b].isSummary ? 1 : 0) - (csvFilesConfig[a].isSummary ? 1 : 0));
+            tabOrder.forEach(idx => {
+                const cfg = csvFilesConfig[idx];
                 const btn = document.createElement('button');
                 btn.id = `tab-csv-${idx}`;
                 btn.className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${idx === currentActiveFileIndex ? csvTabActiveClass : csvTabInactiveClass}`;
@@ -1106,8 +1111,13 @@
             document.getElementById(`tab-csv-${index}`).className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${csvTabActiveClass}`;
             
             currentActiveFileIndex = index;
-            document.getElementById('loading').style.display = 'flex';
-            loadSelectedCSV(index, currentFilters, selectedMonth);
+            if (csvFilesConfig[index].isSummary) {
+                showSummaryView();
+            } else {
+                if (summaryActive) hideSummaryView();
+                document.getElementById('loading').style.display = 'flex';
+                loadSelectedCSV(index, currentFilters, selectedMonth);
+            }
             
             if (window.innerWidth < 768) {
                 document.getElementById('sidebar').classList.add('-translate-x-full');
@@ -1741,6 +1751,7 @@
 
         function updateDashboard() {
             if (!lastMonth) return;
+            if (summaryActive) { renderSummary(); return; }
             requestAnimationFrame(() => {
                 updateKPIs();
                 updateCharts();
@@ -3022,7 +3033,305 @@
 		    });
 		}
 
-	</script>
+	
+        // =====================================================================
+        // SUMMARY PERFORMANCE (gabungan KPI semua produk)
+        // Urutan: FinBook, FinOS, NPF, Funding, Priority, Hajj, Qris, MDin, SLI
+        // Memakai filter CO-BRANCH / OFFICE & pilihan bulan yang sama dengan menu lain.
+        // =====================================================================
+        const SUMMARY_ORDER = [
+            { file: 'finbook.csv',  kind: 'group', billion: true,  ytd: true,  total: 'Booking Total' },
+            { file: 'finos.csv',    kind: 'group', billion: true,  ytd: true,  total: 'Portfolio Total' },
+            { file: 'coll.csv',     kind: 'group', billion: true,  ytd: false, total: 'Outstanding Total', isNPF: true },
+            { file: 'funding.csv',  kind: 'casa',  billion: true,  total: 'Funding Total' },
+            { file: 'priority.csv', kind: 'casa',  billion: true,  total: 'Priority Total' },
+            { file: 'haji.csv',     kind: 'group', billion: false, ytd: true,  total: 'PORTION TOTAL' },
+            { file: 'qris.csv',     kind: 'acq',   billion: false },
+            { file: 'mdin.csv',     kind: 'acq',   billion: false },
+            { file: 'sli.csv',      kind: 'group', billion: true,  ytd: false, total: 'Booking Total' }
+        ];
+        const summaryDatasets = {};
+
+        function summaryParseCSV(text) {
+            text = text.replace(/^\uFEFF/, '');
+            const firstLine = text.substring(0, text.indexOf('\n'));
+            const delimiter = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+            const parseLine = (line) => {
+                const result = []; let current = ''; let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') inQuotes = !inQuotes;
+                    else if (ch === delimiter && !inQuotes) { result.push(current); current = ''; }
+                    else current += ch;
+                }
+                result.push(current);
+                return result;
+            };
+            const lines = text.split(/\r?\n/);
+            const headers = parseLine(lines[0]);
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const values = parseLine(lines[i]);
+                const row = {};
+                headers.forEach((h, idx) => row[h] = values[idx] || '');
+                data.push(row);
+            }
+            return data;
+        }
+
+        function summaryPrepare(rows) {
+            const staticFields = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP', 'CO-BRANCH-CLEAN', 'OFFICE-CLEAN'];
+            const monthCols = rows.length ? Object.keys(rows[0]).filter(k => !staticFields.includes(k)) : [];
+            rows.forEach(row => {
+                row['CO-BRANCH-CLEAN'] = cleanName(row['CO-BRANCH']);
+                row['OFFICE-CLEAN'] = cleanName(row['OFFICE']);
+                if (!row.GROUP) row.GROUP = 'General';
+                monthCols.forEach(col => {
+                    let val = row[col];
+                    if (val) {
+                        if (typeof val === 'string') val = parseFloat(val.replace(/\./g, '').replace(/,/g, '.')) || 0;
+                        else val = parseFloat(val) || 0;
+                    } else { val = 0; }
+                    row[col] = val;
+                });
+            });
+            const groupLabels = [...new Set(rows.map(r => r.GROUP || 'General'))].filter(Boolean);
+            return { rows, monthCols, groupLabels };
+        }
+
+        function loadSummaryData() {
+            const missing = SUMMARY_ORDER.filter(d => !summaryDatasets[d.file]);
+            return Promise.all(missing.map(d =>
+                fetch(d.file)
+                    .then(res => { if (!res.ok) throw new Error('File not found'); return res.text(); })
+                    .then(text => { summaryDatasets[d.file] = summaryPrepare(summaryParseCSV(text)); })
+                    .catch(err => { console.error(d.file, err); summaryDatasets[d.file] = { error: true }; })
+            ));
+        }
+
+        // Agregasi mengikuti logika applyFilters (CO-BRANCH & OFFICE saja)
+        function summaryAggregate(ds, co, off) {
+            const agg = { grand: {}, byGroup: {}, casa: {} };
+            ds.groupLabels.forEach(g => agg.byGroup[g] = {});
+            ds.monthCols.forEach(m => { agg.grand[m] = 0; agg.casa[m] = { ca: 0, sa: 0, td: 0 }; });
+            ds.rows.forEach(row => {
+                if (co !== 'ALL' && row['CO-BRANCH-CLEAN'] !== co) return;
+                if (off !== 'ALL' && row['OFFICE-CLEAN'] !== off) return;
+                const prod = row.PRODUCT, grp = row.GROUP;
+                ds.monthCols.forEach(col => {
+                    const val = row[col];
+                    agg.grand[col] += val;
+                    if (grp) agg.byGroup[grp][col] = (agg.byGroup[grp][col] || 0) + val;
+                    let isCA = (prod === 'CA' || prod === 'GIRO');
+                    let isSA = (prod === 'SA' || prod === 'Saving');
+                    let isTD = (prod === 'TD' || prod === 'DEPO' || prod === 'DEPOSITO');
+                    if (!isCA && !isSA && !isTD) {
+                        if (grp === 'CASA') {
+                            if (prod && (prod.toUpperCase().includes('GIRO') || prod.toUpperCase().includes('CA'))) isCA = true;
+                            else isSA = true;
+                        } else if (grp === 'TD') { isTD = true; }
+                    }
+                    if (isCA) agg.casa[col].ca += val;
+                    else if (isSA) agg.casa[col].sa += val;
+                    else if (isTD) agg.casa[col].td += val;
+                });
+            });
+            return agg;
+        }
+
+        function summaryYearOf(monthName) {
+            const parts = String(monthName).split(/[-\s]+/);
+            for (let p of parts) { if (/^\d{2}$/.test(p) || /^\d{4}$/.test(p)) return p; }
+            return null;
+        }
+
+        function summaryYTD(monthCols, targetMonth, getter) {
+            if (!targetMonth || targetMonth === '-') return 0;
+            const selectedYear = summaryYearOf(targetMonth) || new Date().getFullYear().toString().slice(-2);
+            let sum = 0;
+            for (let i = monthCols.indexOf(targetMonth); i >= 0; i--) {
+                const y = summaryYearOf(monthCols[i]);
+                if (y === selectedYear || !y) sum += getter(monthCols[i]); else break;
+            }
+            return sum;
+        }
+
+        // --- Builder HTML (markup & class sama dengan kartu KPI yang sudah ada) ---
+        function sumFmt(v, billion) { return billion ? formatToBillion(v) : formatNumber(v); }
+
+        function sumMomHtml(cur, prev, billion, isNPF) {
+            const diff = cur - prev;
+            let colorClass, arrow;
+            if (isNPF) {
+                if (diff < 0) { colorClass = 'bg-mom-positive'; arrow = 'fa-arrow-down'; }
+                else if (diff > 0) { colorClass = 'bg-mom-negative'; arrow = 'fa-arrow-up'; }
+                else { colorClass = 'bg-mom-neutral'; arrow = 'fa-minus'; }
+            } else {
+                if (diff > 0) { colorClass = 'bg-mom-positive'; arrow = 'fa-arrow-up'; }
+                else if (diff < 0) { colorClass = 'bg-mom-negative'; arrow = 'fa-arrow-down'; }
+                else { colorClass = 'bg-mom-neutral'; arrow = 'fa-minus'; }
+            }
+            const sign = diff > 0 ? '+' : '';
+            return `<div class="mom-badge ${colorClass}"><span class="font-bold opacity-80">MTD</span><i class="fa-solid ${arrow} text-[10px]"></i><span>${sign}${sumFmt(diff, billion)}</span></div>`;
+        }
+
+        function sumYtdHtml(value, billion) {
+            return `<div class="flex items-center"><span class="mom-badge ${value < 0 ? 'bg-ytd-negative' : 'bg-ytd-default'} font-bold flex items-center gap-1"><span>YTD</span><span>${sumFmt(value, billion)}</span></span></div>`;
+        }
+
+        function sumCard(c) {
+            return `<div class="bg-white dark:bg-dark-card rounded-[10px] p-2 md:p-3 card-shadow border-l-4-t-2 ${c.border} min-w-0 transition-colors duration-300">
+                <div class="flex justify-between items-start gap-1">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">${c.label}</p>
+                        <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white mt-0.5 truncate">${c.value}</h3>
+                        <div class="flex items-center gap-1.5 min-h-[22px]">${c.mom || ''}${c.ytd || ''}</div>
+                    </div>
+                    <div class="p-1 ${c.iconBg} rounded ${c.iconText} text-xs shrink-0"><i class="fa-solid ${c.icon}"></i></div>
+                </div>
+                <div class="mt-1 flex items-center text-[8px] md:text-[9px] min-w-0 w-full">${c.footer}</div>
+            </div>`;
+        }
+
+        const SUM_STYLE = [
+            { border: 'border-muamalat-500', iconBg: 'bg-muamalat-50 dark:bg-muamalat-900/30', iconText: 'text-muamalat-600 dark:text-muamalat-400', icon: 'fa-calculator' },
+            { border: 'border-emerald-500',  iconBg: 'bg-emerald-50 dark:bg-emerald-900/30',   iconText: 'text-emerald-600 dark:text-emerald-400',   icon: 'fa-layer-group' },
+            { border: 'border-amber-500',    iconBg: 'bg-amber-50 dark:bg-amber-900/30',       iconText: 'text-amber-600 dark:text-amber-400',       icon: 'fa-boxes-stacked' },
+            { border: 'border-blue-500',     iconBg: 'bg-blue-50 dark:bg-blue-900/30',         iconText: 'text-blue-600 dark:text-blue-400',         icon: 'fa-trophy' }
+        ];
+
+        const sumFooterLatest = (txt) => `<span class="text-slate-400 dark:text-slate-500 truncate">Latest: <i class="not-italic font-medium text-slate-600 dark:text-slate-300">${txt}</i></span>`;
+        const sumFooterPct = (pct) => `<span class="text-slate-400 dark:text-slate-500 truncate">${pct.toFixed(1)}% <span class="text-[8px] text-slate-400 dark:text-slate-500 font-normal">from Total</span></span>`;
+        const sumFooterText = (txt) => `<span class="text-slate-400 dark:text-slate-500 not-italic truncate">${txt}</span>`;
+        const sumFooterSmall = (txt) => `<span class="text-slate-400 dark:text-slate-500 truncate"><span class="text-slate-400 dark:text-slate-500 font-normal text-[8px]">${txt}</span></span>`;
+
+        function summaryCards(def, ds, agg, latestText) {
+            const B = def.billion, isNPF = !!def.isNPF;
+            const mc = ds.monthCols;
+            const idx = mc.indexOf(lastMonth) >= 0 ? mc.indexOf(lastMonth) : mc.length - 1;
+            const cur = mc[idx], prv = idx >= 1 ? mc[idx - 1] : '', prv2 = idx >= 2 ? mc[idx - 2] : '';
+            const G = (m) => agg.grand[m] || 0;
+            const total = G(cur), totalPrev = G(prv), totalPrev2 = G(prv2);
+            const S = SUM_STYLE;
+
+            if (def.kind === 'acq') {
+                const ms = [0, 1, 2, 3].map(k => idx - k >= 0 ? mc[idx - k] : '-');
+                const foot = [sumFooterLatest(latestText), sumFooterSmall('Last 2 month'), sumFooterSmall('Last 3 month'), sumFooterText('Last 4 month')];
+                return ms.map((m, k) => sumCard({
+                    ...S[k], icon: k === 3 ? 'fa-calendar-check' : S[k].icon,
+                    label: `Acquisition (${m})`, value: formatNumber(m === '-' ? 0 : G(m)),
+                    ytd: m !== '-' ? sumYtdHtml(summaryYTD(mc, m, x => G(x)), false) : '',
+                    footer: foot[k]
+                })).join('');
+            }
+
+            if (def.kind === 'casa') {
+                const C = (m) => agg.casa[m] || { ca: 0, sa: 0, td: 0 };
+                const ca = C(cur).ca, sa = C(cur).sa, td = C(cur).td;
+                let ytd = ['', '', '', ''];
+                const yr = summaryYearOf(cur) || new Date().getFullYear().toString().slice(-2);
+                if (yr === '26' || yr === '2026') {
+                    const dec = mc.find(m => { const l = m.toLowerCase(); return l.includes('25') && (l.includes('des') || l.includes('dic') || l.includes('dec')); });
+                    if (dec) {
+                        ytd = [total - G(dec), ca - C(dec).ca, sa - C(dec).sa, td - C(dec).td].map(v => sumYtdHtml(v, B));
+                    }
+                }
+                const pct = (v) => total ? (v / total * 100) : 0;
+                return [
+                    sumCard({ ...S[0], label: def.total, value: sumFmt(total, B), mom: sumMomHtml(total, totalPrev, B, false), ytd: ytd[0], footer: sumFooterLatest(latestText) }),
+                    sumCard({ ...S[1], label: 'CA (Giro)', value: sumFmt(ca, B), mom: sumMomHtml(ca, C(prv).ca, B, false), ytd: ytd[1], footer: sumFooterPct(pct(ca)) }),
+                    sumCard({ ...S[2], label: 'SA (Saving)', value: sumFmt(sa, B), mom: sumMomHtml(sa, C(prv).sa, B, false), ytd: ytd[2], footer: sumFooterPct(pct(sa)) }),
+                    sumCard({ ...S[3], label: 'TD (TIME DEPOSIT)', value: sumFmt(td, B), mom: sumMomHtml(td, C(prv).td, B, false), ytd: ytd[3], footer: sumFooterText(`${pct(td).toFixed(1)}% from Total`) })
+                ].join('');
+            }
+
+            // kind === 'group'
+            const g1 = ds.groupLabels[0], g2 = ds.groupLabels[1];
+            const GG = (g, m) => (g && agg.byGroup[g] && agg.byGroup[g][m]) || 0;
+            const g1T = GG(g1, cur), g2T = GG(g2, cur);
+            const pct = (v) => total ? (v / total * 100) : 0;
+            const ytdOf = (getter) => def.ytd ? sumYtdHtml(summaryYTD(mc, cur, getter), B) : '';
+            return [
+                sumCard({ ...S[0], label: def.total, value: sumFmt(total, B), mom: sumMomHtml(total, totalPrev, B, isNPF), ytd: ytdOf(x => G(x)), footer: sumFooterLatest(latestText) }),
+                sumCard({ ...S[1], label: g1 || 'Segment 1', value: sumFmt(g1T, B), mom: sumMomHtml(g1T, GG(g1, prv), B, isNPF), ytd: ytdOf(x => GG(g1, x)), footer: sumFooterPct(pct(g1T)) }),
+                sumCard({ ...S[2], label: g2 || 'Segment 2', value: sumFmt(g2T, B), mom: sumMomHtml(g2T, GG(g2, prv), B, isNPF), ytd: ytdOf(x => GG(g2, x)), footer: sumFooterPct(pct(g2T)) }),
+                sumCard({ ...S[3], icon: 'fa-book-open', label: 'Last Month', value: sumFmt(totalPrev, B), mom: sumMomHtml(totalPrev, totalPrev2, B, isNPF), footer: sumFooterText(prv || '-') })
+            ].join('');
+        }
+
+        function renderSummary() {
+            const wrap = document.getElementById('summary-wrapper');
+            if (!wrap) return;
+            const co = document.getElementById('filter-CO-BRANCH')?.value || 'ALL';
+            const off = document.getElementById('filter-OFFICE')?.value || 'ALL';
+            const isLast = (lastMonth === monthColumns[monthColumns.length - 1]);
+            const latestText = isLast ? MANUAL_DATE_LATEST_MONTH : lastMonth;
+
+            let html = '';
+            SUMMARY_ORDER.forEach(def => {
+                const cfg = csvFilesConfig.find(c => c.file === def.file);
+                const ds = summaryDatasets[def.file];
+                let body;
+                if (!ds) body = `<div class="text-[10px] text-slate-400">Memuat data...</div>`;
+                else if (ds.error) body = `<div class="text-[10px] text-red-500">Gagal memuat: ${def.file}</div>`;
+                else body = `<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">${summaryCards(def, ds, summaryAggregate(ds, co, off), latestText)}</div>`;
+                html += `<section>
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fa-solid ${cfg.icon} text-muamalat-600 dark:text-muamalat-400 text-xs w-4 text-center"></i>
+                        <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200">${cfg.name}</h3>
+                    </div>
+                    ${body}
+                </section>`;
+            });
+            wrap.innerHTML = html;
+        }
+
+        // --- Tampilan: masuk / keluar mode Summary ---
+        function showSummaryView() {
+            summaryActive = true;
+            ['kpi-container', 'charts-wrapper', 'table-card-container', 'table-position-placeholder'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.style.display = 'none';
+            });
+            const wrap = document.getElementById('summary-wrapper');
+            if (wrap) wrap.classList.remove('hidden');
+            const cmp = document.getElementById('compare-btn'); if (cmp) cmp.style.display = 'none';
+            ['PRODUCT', 'GROUP'].forEach(col => {
+                const s = document.getElementById(`filter-${col}`);
+                if (s) { s.value = 'ALL'; if (s.parentElement) s.parentElement.style.display = 'none'; }
+            });
+
+            const start = () => {
+                document.getElementById('loading').style.display = 'flex';
+                updateDashboardTitle();
+                loadSummaryData().then(() => {
+                    if (summaryActive) renderSummary();
+                }).finally(() => { document.getElementById('loading').style.display = 'none'; });
+            };
+            // Pastikan data dasar (bulan & filter cabang) sudah termuat
+            if (lastMonth && document.getElementById('filter-CO-BRANCH')) start();
+            else {
+                let tries = 0;
+                const t = setInterval(() => {
+                    if ((lastMonth && document.getElementById('filter-CO-BRANCH')) || ++tries > 50) { clearInterval(t); if (summaryActive) start(); }
+                }, 200);
+            }
+        }
+
+        function hideSummaryView() {
+            summaryActive = false;
+            ['kpi-container', 'charts-wrapper', 'table-card-container', 'table-position-placeholder'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.style.display = '';
+            });
+            const wrap = document.getElementById('summary-wrapper');
+            if (wrap) { wrap.classList.add('hidden'); wrap.innerHTML = ''; }
+            const cmp = document.getElementById('compare-btn'); if (cmp) cmp.style.display = '';
+            ['PRODUCT', 'GROUP'].forEach(col => {
+                const s = document.getElementById(`filter-${col}`);
+                if (s && s.parentElement) s.parentElement.style.display = '';
+            });
+        }
+    </script>
 
     <!-- EXPORT MODAL -->
     <div id="export-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
