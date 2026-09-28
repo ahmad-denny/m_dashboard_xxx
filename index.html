@@ -418,7 +418,7 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
+                <button id="summary-capture-btn" onclick="(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-camera sm:mr-1"></i> <span class="hidden sm:inline">Capture</span>
                 </button>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
@@ -3345,21 +3345,68 @@ window.captureSummary = function(btn) {
     }
     cabangUser = cabangUser.toUpperCase();
 
-    // 2. Buat Header Capture Khusus dengan Flex Alignment Presisi
+    // 2. Inject CSS Khusus Sementara untuk Memaksa Layout Rapi saat Capture
+    const styleEl = document.createElement('style');
+    styleEl.id = 'temp-capture-style';
+    styleEl.innerHTML = `
+        /* 1 & 2. Memastikan Card & Header KPI tidak terpotong */
+        #summary-wrapper .card-shadow, 
+        #summary-wrapper .bg-white, 
+        #summary-wrapper .dark\\:bg-dark-card {
+            overflow: visible !important;
+            height: auto !important;
+            padding-top: 18px !important;
+            padding-bottom: 22px !important;
+        }
+
+        /* Teks Judul Atas Card agar aman dari batas atas */
+        #summary-wrapper .card-shadow p,
+        #summary-wrapper .bg-white p,
+        #summary-wrapper .dark\\:bg-dark-card p {
+            line-height: 1.4 !important;
+        }
+
+        /* 3 & 4. Memastikan Badge MTD/YTD & Tanggal Bawah Presisi & Tidak Terpotong */
+        #summary-wrapper .rounded-full,
+        #summary-wrapper .rounded-md {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            vertical-align: middle !important;
+        }
+
+        /* 5. Ukuran Panah Kecil & Tidak Merusak Alur Teks */
+        #summary-wrapper i.fa-arrow-up,
+        #summary-wrapper i.fa-arrow-down,
+        #summary-wrapper i.fa-long-arrow-alt-up,
+        #summary-wrapper i.fa-long-arrow-alt-down,
+        #summary-wrapper i.fa-caret-up,
+        #summary-wrapper i.fa-caret-down {
+            font-size: 13px !important;
+            margin-right: 2px !important;
+            margin-left: 1px !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+        }
+    `;
+    document.head.appendChild(styleEl);
+
+    // 3. Buat Header Capture Khusus (Poin 1: Rounded & Teks Presisi di Tengah Vertikal)
     const captureHeader = document.createElement('div');
     captureHeader.id = 'capture-header-temp';
     captureHeader.style.cssText = `
-        width: 100%;
-        margin-bottom: 20px;
-        padding: 16px 24px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%);
-        color: #ffffff;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-sizing: border-box;
+        width: 100% !important;
+        margin-bottom: 24px !important;
+        padding: 16px 24px !important;
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        box-sizing: border-box !important;
     `;
     
     // Tanggal As Of saat ini
@@ -3369,10 +3416,10 @@ window.captureSummary = function(btn) {
     captureHeader.innerHTML = `
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
-            <p style="font-size: 12px; margin: 4px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
+            <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
         </div>
-        <div style="display: flex; align-items: center; height: 100%;">
-            <span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">
+        <div style="display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 11px; font-weight: 600; padding: 8px 18px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
                 Region Sumatera
             </span>
         </div>
@@ -3381,40 +3428,13 @@ window.captureSummary = function(btn) {
     // Sisipkan Header ke paling atas summary-wrapper
     summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
 
-    // 3. Penyesuaian Style Card agar tidak terpotong & panah rapi
+    // 4. Ubah Warna Panah (Poin 5: Turun = Merah, Naik = Hijau)
     const cards = summaryWrapper.querySelectorAll('.card-shadow, .bg-white, .dark\\:bg-dark-card');
-    const originalStyles = [];
-
     cards.forEach((card) => {
-        // Simpan style asli untuk di-restore
-        originalStyles.push({
-            el: card,
-            padding: card.style.padding,
-            overflow: card.style.overflow,
-            height: card.style.height,
-            minHeight: card.style.minHeight
-        });
-
-        // Berikan ruang padding internal agar judul atas & tanggal bawah TIDAK TERPOTONG
-        card.style.overflow = 'visible';
-        card.style.height = 'auto';
-        card.style.paddingTop = '16px';
-        card.style.paddingBottom = '20px';
-
-        // Rapikan Panah Indikator tanpa merusak alur baris teks
         const arrows = card.querySelectorAll('i.fa-arrow-up, i.fa-arrow-down, i.fa-long-arrow-alt-up, i.fa-long-arrow-alt-down, i.fa-caret-up, i.fa-caret-down');
         arrows.forEach(arrow => {
             arrow.dataset.origStyle = arrow.getAttribute('style') || '';
-            arrow.dataset.origClass = arrow.className;
-
-            // Ukuran panah proporsional & kecil agar tidak mendorong layout
-            arrow.style.fontSize = '14px';
-            arrow.style.display = 'inline-block';
-            arrow.style.verticalAlign = 'middle';
-            arrow.style.marginRight = '3px';
-            arrow.style.marginLeft = '1px';
-
-            // Cek warna panah (Turun = Merah, Naik = Hijau)
+            
             const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
             const isDown = arrow.classList.contains('fa-arrow-down') || 
                            arrow.classList.contains('fa-long-arrow-alt-down') || 
@@ -3422,14 +3442,14 @@ window.captureSummary = function(btn) {
                            parentText.includes('-');
 
             if (isDown) {
-                arrow.style.color = '#ef4444'; // Merah
+                arrow.style.setProperty('color', '#ef4444', 'important'); // Merah
             } else {
-                arrow.style.color = '#10b981'; // Hijau
+                arrow.style.setProperty('color', '#10b981', 'important'); // Hijau
             }
         });
     });
 
-    // 4. Proses Capture dengan html2canvas
+    // 5. Eksekusi Capture Menggunakan html2canvas
     setTimeout(() => {
         html2canvas(summaryWrapper, {
             scale: 2,
@@ -3439,19 +3459,12 @@ window.captureSummary = function(btn) {
         }).then(canvas => {
             // Restore Tampilan Awal & Hapus Elemen Temp
             if (captureHeader) captureHeader.remove();
-            
-            originalStyles.forEach(item => {
-                item.el.style.padding = item.padding;
-                item.el.style.overflow = item.overflow;
-                item.el.style.height = item.height;
-                item.el.style.minHeight = item.minHeight;
-            });
+            if (styleEl) styleEl.remove();
 
             cards.forEach((card) => {
                 const arrows = card.querySelectorAll('i');
                 arrows.forEach(arrow => {
-                    if (arrow.dataset.origClass !== undefined) {
-                        arrow.className = arrow.dataset.origClass;
+                    if (arrow.dataset.origStyle !== undefined) {
                         arrow.setAttribute('style', arrow.dataset.origStyle);
                     }
                 });
@@ -3468,6 +3481,7 @@ window.captureSummary = function(btn) {
         }).catch(err => {
             console.error('Error saat capture:', err);
             if (captureHeader) captureHeader.remove();
+            if (styleEl) styleEl.remove();
             if (loadingEl) loadingEl.style.display = 'none';
             
             Swal.fire({
@@ -3477,7 +3491,7 @@ window.captureSummary = function(btn) {
                 confirmColor: '#6441A5'
             });
         });
-    }, 300);
+    }, 400);
 };
 		
 
