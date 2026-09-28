@@ -3322,63 +3322,165 @@
             }
         }
 
-        function captureSummary(btn) {
-            if (typeof html2canvas === 'undefined') {
-                alert("Library screenshot belum siap. Silakan refresh halaman.");
-                return;
-            }
-            const target = document.getElementById('summary-wrapper');
-            if (!target || !target.innerHTML.trim()) return;
-
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin sm:mr-1"></i> <span class="hidden sm:inline">Processing...</span>';
-            btn.disabled = true;
-
-            const isDark = document.body.classList.contains('dark');
-            const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten
-
-            // Beri ruang di tepi hasil capture, dikembalikan setelah selesai
-            const prevPadding = target.style.padding;
-            target.style.padding = '16px';
-
-            html2canvas(target, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: bgColor,
-                logging: false,
-                windowWidth: target.scrollWidth,
-                windowHeight: target.scrollHeight,
-                // html2canvas sering memotong teks pada elemen ber-overflow:hidden (class "truncate")
-                // karena posisi teks bergeser sedikit dari kotaknya. Perbaikan hanya berlaku di salinan
-                // (clone) untuk gambar capture, tampilan asli di layar tidak berubah.
-                onclone: (clonedDoc) => {
-                    const fix = clonedDoc.createElement('style');
-                    fix.textContent = `
-                        #summary-wrapper *, #summary-wrapper *::before, #summary-wrapper *::after { transition: none !important; animation: none !important; }
-                        #summary-wrapper .truncate { overflow: visible !important; text-overflow: clip !important; }
-                        #summary-wrapper p.truncate { white-space: normal !important; line-height: 1.35 !important; padding: 1px 0 !important; }
-                        #summary-wrapper h3.truncate { line-height: 1.4 !important; padding: 1px 0 !important; }
-                        #summary-wrapper span.truncate { line-height: 1.5 !important; padding: 1px 0 !important; }
-                        #summary-wrapper .mom-badge { line-height: 1.5 !important; padding-top: 3px !important; padding-bottom: 3px !important; }
-                    `;
-                    clonedDoc.head.appendChild(fix);
-                }
-            }).then(canvas => {
-                const link = document.createElement('a');
-                const timestamp = new Date().toISOString().slice(0, 10);
-                link.download = `Summary_Performance_${timestamp}.png`;
-                link.href = canvas.toDataURL("image/png", 1.0);
-                link.click();
-            }).catch(err => {
-                console.error("Capture Error:", err);
-                alert("Gagal mengambil screenshot: " + err.message);
-            }).finally(() => {
-                target.style.padding = prevPadding;
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            });
-        }
-
+		window.captureSummary = function(btn) {
+		    const summaryWrapper = document.getElementById('summary-wrapper');
+		    if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
+		        Swal.fire({
+		            icon: 'warning',
+		            title: 'Tidak Ada Tampilan Summary',
+		            text: 'Silakan buka menu Summary Performance terlebih dahulu.',
+		            confirmColor: '#6441A5'
+		        });
+		        return;
+		    }
+		
+		    // Tampilkan Indikator Loading
+		    const loadingEl = document.getElementById('loading');
+		    if (loadingEl) loadingEl.style.display = 'flex';
+		
+		    // 1. Ambil Nama Cabang User Login
+		    let cabangUser = currentUserCabang || 'REGION SUMATERA';
+		    if (typeof cleanName === 'function') {
+		        cabangUser = cleanName(cabangUser);
+		    }
+		    cabangUser = cabangUser.toUpperCase();
+		
+		    // 2. Buat Header Capture Khusus
+		    const captureHeader = document.createElement('div');
+		    captureHeader.id = 'capture-header-temp';
+		    captureHeader.className = 'w-full mb-4 p-4 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg flex items-center justify-between';
+		    
+		    // Tanggal As Of saat ini
+		    const headerAsOfEl = document.getElementById('header-as-of');
+		    const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+		
+		    captureHeader.innerHTML = `
+		        <div>
+		            <h1 class="text-xl md:text-2xl font-bold tracking-wide">Summary Performance - ${cabangUser}</h1>
+		            <p class="text-xs text-purple-200 mt-1">Data Performa & Realisasi As of: <span class="font-semibold text-white">${asOfText}</span></p>
+		        </div>
+		        <div class="text-right">
+		            <span class="text-xs font-semibold px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white uppercase tracking-wider">
+		                Region Sumatera
+		            </span>
+		        </div>
+		    `;
+		
+		    // Sisipkan Header ke paling atas summary-wrapper
+		    summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
+		
+		    // 3. Terapkan Efek Perbesar Background Value & Icon Beririsan
+		    const cards = summaryWrapper.querySelectorAll('.card-shadow, .bg-white, .dark\\:bg-dark-card');
+		    const originalStyles = [];
+		
+		    cards.forEach((card, idx) => {
+		        // Simpan style asli untuk restore nanti
+		        originalStyles.push({
+		            position: card.style.position,
+		            overflow: card.style.overflow
+		        });
+		
+		        // Set relatif & hidden overflow agar efek watermark/icon tidak terpotong ke luar card
+		        card.style.position = 'relative';
+		        card.style.overflow = 'hidden';
+		
+		        // Cari Icon di dalam card
+		        const icon = card.querySelector('i');
+		        if (icon) {
+		            icon.dataset.origClass = icon.className;
+		            icon.dataset.origStyle = icon.getAttribute('style') || '';
+		            
+		            // Perbesar Icon dan Posisikan Beririsan di Belakang/Samping Teks Utama
+		            icon.style.fontSize = '4.5rem';
+		            icon.style.position = 'absolute';
+		            icon.style.right = '-10px';
+		            icon.style.bottom = '-10px';
+		            icon.style.opacity = '0.15';
+		            icon.style.pointerEvents = 'none';
+		            icon.style.zIndex = '0';
+		        }
+		
+		        // Cari Angka Utama / Value
+		        const valueEl = card.querySelector('h3, .text-lg, .text-xl, .text-2xl, .font-bold');
+		        if (valueEl) {
+		            valueEl.dataset.origStyle = valueEl.getAttribute('style') || '';
+		            valueEl.style.position = 'relative';
+		            valueEl.style.zIndex = '10';
+		
+		            // Buat elemen bayangan/background value raksasa yang beririsan
+		            const bgVal = document.createElement('div');
+		            bgVal.className = 'capture-bg-value-temp';
+		            bgVal.innerText = valueEl.innerText.trim();
+		            bgVal.style.position = 'absolute';
+		            bgVal.style.left = '5px';
+		            bgVal.style.bottom = '-8px';
+		            bgVal.style.fontSize = '3.2rem';
+		            bgVal.style.fontWeight = '900';
+		            bgVal.style.lineHeight = '1';
+		            bgVal.style.opacity = '0.08';
+		            bgVal.style.pointerEvents = 'none';
+		            bgVal.style.zIndex = '0';
+		            bgVal.style.whiteSpace = 'nowrap';
+		            
+		            card.appendChild(bgVal);
+		        }
+		    });
+		
+		    // 4. Proses Capture Menggunakan html2canvas
+		    setTimeout(() => {
+		        html2canvas(summaryWrapper, {
+		            scale: 2,
+		            useCORS: true,
+		            backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
+		            logging: false
+		        }).then(canvas => {
+		            // Restore Tampilan & Hapus Elemen Temp
+		            if (captureHeader) captureHeader.remove();
+		            
+		            cards.forEach((card, idx) => {
+		                if (originalStyles[idx]) {
+		                    card.style.position = originalStyles[idx].position;
+		                    card.style.overflow = originalStyles[idx].overflow;
+		                }
+		                
+		                const icon = card.querySelector('i');
+		                if (icon && icon.dataset.origClass !== undefined) {
+		                    icon.className = icon.dataset.origClass;
+		                    icon.setAttribute('style', icon.dataset.origStyle);
+		                }
+		
+		                const bgVal = card.querySelector('.capture-bg-value-temp');
+		                if (bgVal) bgVal.remove();
+		
+		                const valueEl = card.querySelector('h3, .text-lg, .text-xl, .text-2xl, .font-bold');
+		                if (valueEl && valueEl.dataset.origStyle !== undefined) {
+		                    valueEl.setAttribute('style', valueEl.dataset.origStyle);
+		                }
+		            });
+		
+		            if (loadingEl) loadingEl.style.display = 'none';
+		
+		            // Download Gambar
+		            const link = document.createElement('a');
+		            const fileNameDate = new Date().toISOString().split('T')[0];
+		            link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
+		            link.href = canvas.toDataURL('image/png');
+		            link.click();
+		        }).catch(err => {
+		            console.error('Error saat capture:', err);
+		            if (captureHeader) captureHeader.remove();
+		            if (loadingEl) loadingEl.style.display = 'none';
+		            
+		            Swal.fire({
+		                icon: 'error',
+		                title: 'Gagal Capture',
+		                text: 'Terjadi kesalahan saat memproses gambar.',
+		                confirmColor: '#6441A5'
+		            });
+		        });
+		    }, 300);
+		};
+		
         function hideSummaryView() {
             summaryActive = false;
             ['kpi-container', 'charts-wrapper', 'table-card-container', 'table-position-placeholder'].forEach(id => {
