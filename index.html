@@ -418,7 +418,7 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <button id="summary-capture-btn" onclick="(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
+                <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-camera sm:mr-1"></i> <span class="hidden sm:inline">Capture</span>
                 </button>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
@@ -3322,183 +3322,62 @@
             }
         }
 
-window.captureSummary = function(btn) {
-    try {
-        const summaryWrapper = document.getElementById('summary-wrapper');
-        if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak Ada Tampilan Summary',
-                    text: 'Silakan buka menu Summary Performance terlebih dahulu.',
-                    confirmColor: '#6441A5'
-                });
-            } else {
-                alert('Silakan buka menu Summary Performance terlebih dahulu.');
-            }
-            return;
-        }
-
-        // Tampilkan Indikator Loading
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'flex';
-
-        // 1. Ambil Nama Cabang User Login
-        let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION SUMATERA';
-        if (typeof cleanName === 'function') {
-            cabangUser = cleanName(cabangUser);
-        }
-        cabangUser = cabangUser.toUpperCase();
-
-        // 2. Inject Style Temp untuk Merapikan Layout saat Capture
-        let styleEl = document.getElementById('temp-capture-style');
-        if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = 'temp-capture-style';
-            document.head.appendChild(styleEl);
-        }
-        
-        styleEl.innerHTML = `
-            /* Buka batas overflow agar teks atas & tanggal bawah tidak terpotong */
-            #summary-wrapper div[class*="rounded"], 
-            #summary-wrapper div[class*="shadow"],
-            #summary-wrapper .card-shadow {
-                overflow: visible !important;
-                height: auto !important;
-                padding-top: 18px !important;
-                padding-bottom: 22px !important;
-            }
-
-            /* Mencegah teks judul atas terpotong */
-            #summary-wrapper p, #summary-wrapper span, #summary-wrapper h3 {
-                line-height: 1.3 !important;
-            }
-
-            /* Badge MTD/YTD Rapi di Tengah */
-            #summary-wrapper .rounded-full,
-            #summary-wrapper .rounded-md {
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                vertical-align: middle !important;
-            }
-
-            /* Ukuran Panah Proporsional & Rapi */
-            #summary-wrapper i.fa-arrow-up,
-            #summary-wrapper i.fa-arrow-down,
-            #summary-wrapper i.fa-long-arrow-alt-up,
-            #summary-wrapper i.fa-long-arrow-alt-down,
-            #summary-wrapper i.fa-caret-up,
-            #summary-wrapper i.fa-caret-down {
-                font-size: 13px !important;
-                margin-right: 3px !important;
-                margin-left: 2px !important;
-                display: inline-block !important;
-                vertical-align: middle !important;
-            }
-        `;
-
-        // 3. Buat Header Capture Khusus (Badge kanan center & rapi)
-        let captureHeader = document.getElementById('capture-header-temp');
-        if (captureHeader) captureHeader.remove();
-
-        captureHeader = document.createElement('div');
-        captureHeader.id = 'capture-header-temp';
-        captureHeader.style.cssText = 'width: 100% !important; margin-bottom: 20px !important; padding: 16px 24px !important; border-radius: 12px !important; background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important; color: #ffffff !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; display: flex !important; align-items: center !important; justify-content: space-between !important; box-sizing: border-box !important;';
-
-        const headerAsOfEl = document.getElementById('header-as-of');
-        const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
-
-        captureHeader.innerHTML = `
-            <div style="display: flex; flex-direction: column; justify-content: center;">
-                <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
-                <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 11px; font-weight: 600; padding: 8px 18px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
-                    Region Sumatera
-                </span>
-            </div>
-        `;
-
-        summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
-
-        // 4. Pewarnaan Panah (Turun = Merah, Naik = Hijau)
-        const arrows = summaryWrapper.querySelectorAll('i.fa-arrow-up, i.fa-arrow-down, i.fa-long-arrow-alt-up, i.fa-long-arrow-alt-down, i.fa-caret-up, i.fa-caret-down');
-        arrows.forEach(arrow => {
-            arrow.dataset.origStyle = arrow.getAttribute('style') || '';
-            const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
-            const isDown = arrow.classList.contains('fa-arrow-down') || 
-                           arrow.classList.contains('fa-long-arrow-alt-down') || 
-                           arrow.classList.contains('fa-caret-down') ||
-                           parentText.includes('-');
-
-            if (isDown) {
-                arrow.style.setProperty('color', '#ef4444', 'important'); // Merah
-            } else {
-                arrow.style.setProperty('color', '#10b981', 'important'); // Hijau
-            }
-        });
-
-        // 5. Eksekusi Capture html2canvas
-        setTimeout(function() {
+        function captureSummary(btn) {
             if (typeof html2canvas === 'undefined') {
-                alert('Library html2canvas belum dimuat.');
-                if (loadingEl) loadingEl.style.display = 'none';
+                alert("Library screenshot belum siap. Silakan refresh halaman.");
                 return;
             }
+            const target = document.getElementById('summary-wrapper');
+            if (!target || !target.innerHTML.trim()) return;
 
-            html2canvas(summaryWrapper, {
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin sm:mr-1"></i> <span class="hidden sm:inline">Processing...</span>';
+            btn.disabled = true;
+
+            const isDark = document.body.classList.contains('dark');
+            const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten
+
+            // Beri ruang di tepi hasil capture, dikembalikan setelah selesai
+            const prevPadding = target.style.padding;
+            target.style.padding = '16px';
+
+            html2canvas(target, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: (document.body && document.body.classList.contains('dark')) ? '#0f172a' : '#f8fafc',
-                logging: false
-            }).then(function(canvas) {
-                // Restore & Cleanup
-                if (captureHeader) captureHeader.remove();
-                if (styleEl) styleEl.remove();
-
-                arrows.forEach(arrow => {
-                    if (arrow.dataset.origStyle !== undefined) {
-                        arrow.setAttribute('style', arrow.dataset.origStyle);
-                    }
-                });
-
-                if (loadingEl) loadingEl.style.display = 'none';
-
-                // Download Gambar
-                const link = document.createElement('a');
-                const fileNameDate = new Date().toISOString().split('T')[0];
-                link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
-                link.href = canvas.toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }).catch(function(err) {
-                console.error('Error saat capture:', err);
-                if (captureHeader) captureHeader.remove();
-                if (styleEl) styleEl.remove();
-                if (loadingEl) loadingEl.style.display = 'none';
-
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal Capture',
-                        text: 'Terjadi kesalahan saat memproses gambar: ' + err.message,
-                        confirmColor: '#6441A5'
-                    });
+                backgroundColor: bgColor,
+                logging: false,
+                windowWidth: target.scrollWidth,
+                windowHeight: target.scrollHeight,
+                // html2canvas sering memotong teks pada elemen ber-overflow:hidden (class "truncate")
+                // karena posisi teks bergeser sedikit dari kotaknya. Perbaikan hanya berlaku di salinan
+                // (clone) untuk gambar capture, tampilan asli di layar tidak berubah.
+                onclone: (clonedDoc) => {
+                    const fix = clonedDoc.createElement('style');
+                    fix.textContent = `
+                        #summary-wrapper *, #summary-wrapper *::before, #summary-wrapper *::after { transition: none !important; animation: none !important; }
+                        #summary-wrapper .truncate { overflow: visible !important; text-overflow: clip !important; }
+                        #summary-wrapper p.truncate { white-space: normal !important; line-height: 1.35 !important; padding: 1px 0 !important; }
+                        #summary-wrapper h3.truncate { line-height: 1.4 !important; padding: 1px 0 !important; }
+                        #summary-wrapper span.truncate { line-height: 1.5 !important; padding: 1px 0 !important; }
+                        #summary-wrapper .mom-badge { line-height: 1.5 !important; padding-top: 3px !important; padding-bottom: 3px !important; }
+                    `;
+                    clonedDoc.head.appendChild(fix);
                 }
+            }).then(canvas => {
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().slice(0, 10);
+                link.download = `Summary_Performance_${timestamp}.png`;
+                link.href = canvas.toDataURL("image/png", 1.0);
+                link.click();
+            }).catch(err => {
+                console.error("Capture Error:", err);
+                alert("Gagal mengambil screenshot: " + err.message);
+            }).finally(() => {
+                target.style.padding = prevPadding;
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
             });
-        }, 300);
-
-    } catch (err) {
-        console.error('Fatal Error pada captureSummary:', err);
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'none';
-        alert('Terjadi kesalahan script: ' + err.message);
-    }
-};
-		
+        }
 
         function hideSummaryView() {
             summaryActive = false;
