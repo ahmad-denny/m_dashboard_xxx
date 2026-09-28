@@ -3460,12 +3460,26 @@
             el.innerHTML = `
                 <img id="summary-capture-logo" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
                 <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>
-                <div style="min-width:0;">
-                    <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(title)}</div>
-                    <div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">As of <span style="font-weight:600;color:${cAccent};">${esc(asOf || '-')}</span></div>
-                </div>
-                ${user ? `<div style="margin-left:auto;align-self:flex-end;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
+                <div style="min-width:0;flex:1 1 auto;">
+                    <div id="summary-capture-title" style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};white-space:nowrap;overflow:hidden;">${esc(title)}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;white-space:nowrap;">
+                        <span>As of <span style="font-weight:600;color:${cAccent};">${esc(asOf || '-')}</span></span>
+                        ${user ? `<span>Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></span>` : ''}
+                    </div>
+                </div>`;
             return el;
+        }
+
+        // Kecilkan font judul capture sampai muat 1 baris (untuk layar mobile)
+        function fitSummaryCaptureTitle(capHeader) {
+            const t = capHeader.querySelector('#summary-capture-title');
+            if (!t) return;
+            let size = 20;
+            t.style.fontSize = size + 'px';
+            while (t.scrollWidth > t.clientWidth && size > 9) {
+                size -= 0.5;
+                t.style.fontSize = size + 'px';
+            }
         }
 
         function captureSummary(btn) {
@@ -3489,6 +3503,7 @@
             if (oldHeader) oldHeader.remove();
             const capHeader = buildSummaryCaptureHeader(isDark);
             target.insertBefore(capHeader, target.firstChild);
+            fitSummaryCaptureTitle(capHeader);
             const removeCapHeader = () => { if (capHeader.parentNode) capHeader.parentNode.removeChild(capHeader); };
             // Isi logo (data URI) lalu tunggu siap; jika gagal, logo dibuang saja
             const prepareLogo = () => getSummaryLogoDataUrl().then(dataUrl => {
