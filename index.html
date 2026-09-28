@@ -3323,118 +3323,110 @@
         }
 
 window.captureSummary = function(btn) {
-    const summaryWrapper = document.getElementById('summary-wrapper');
-    if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Tidak Ada Tampilan Summary',
-            text: 'Silakan buka menu Summary Performance terlebih dahulu.',
-            confirmColor: '#6441A5'
-        });
-        return;
-    }
-
-    // Tampilkan Indikator Loading
-    const loadingEl = document.getElementById('loading');
-    if (loadingEl) loadingEl.style.display = 'flex';
-
-    // 1. Ambil Nama Cabang User Login
-    let cabangUser = currentUserCabang || 'REGION SUMATERA';
-    if (typeof cleanName === 'function') {
-        cabangUser = cleanName(cabangUser);
-    }
-    cabangUser = cabangUser.toUpperCase();
-
-    // 2. Inject CSS Khusus Sementara untuk Memaksa Layout Rapi saat Capture
-    const styleEl = document.createElement('style');
-    styleEl.id = 'temp-capture-style';
-    styleEl.innerHTML = `
-        /* 1 & 2. Memastikan Card & Header KPI tidak terpotong */
-        #summary-wrapper .card-shadow, 
-        #summary-wrapper .bg-white, 
-        #summary-wrapper .dark\\:bg-dark-card {
-            overflow: visible !important;
-            height: auto !important;
-            padding-top: 18px !important;
-            padding-bottom: 22px !important;
+    try {
+        const summaryWrapper = document.getElementById('summary-wrapper');
+        if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Ada Tampilan Summary',
+                    text: 'Silakan buka menu Summary Performance terlebih dahulu.',
+                    confirmColor: '#6441A5'
+                });
+            } else {
+                alert('Silakan buka menu Summary Performance terlebih dahulu.');
+            }
+            return;
         }
 
-        /* Teks Judul Atas Card agar aman dari batas atas */
-        #summary-wrapper .card-shadow p,
-        #summary-wrapper .bg-white p,
-        #summary-wrapper .dark\\:bg-dark-card p {
-            line-height: 1.4 !important;
+        // Tampilkan Indikator Loading
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'flex';
+
+        // 1. Ambil Nama Cabang User Login
+        let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION SUMATERA';
+        if (typeof cleanName === 'function') {
+            cabangUser = cleanName(cabangUser);
         }
+        cabangUser = cabangUser.toUpperCase();
 
-        /* 3 & 4. Memastikan Badge MTD/YTD & Tanggal Bawah Presisi & Tidak Terpotong */
-        #summary-wrapper .rounded-full,
-        #summary-wrapper .rounded-md {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            line-height: 1 !important;
-            vertical-align: middle !important;
+        // 2. Inject Style Temp untuk Merapikan Layout saat Capture
+        let styleEl = document.getElementById('temp-capture-style');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'temp-capture-style';
+            document.head.appendChild(styleEl);
         }
+        
+        styleEl.innerHTML = `
+            /* Buka batas overflow agar teks atas & tanggal bawah tidak terpotong */
+            #summary-wrapper div[class*="rounded"], 
+            #summary-wrapper div[class*="shadow"],
+            #summary-wrapper .card-shadow {
+                overflow: visible !important;
+                height: auto !important;
+                padding-top: 18px !important;
+                padding-bottom: 22px !important;
+            }
 
-        /* 5. Ukuran Panah Kecil & Tidak Merusak Alur Teks */
-        #summary-wrapper i.fa-arrow-up,
-        #summary-wrapper i.fa-arrow-down,
-        #summary-wrapper i.fa-long-arrow-alt-up,
-        #summary-wrapper i.fa-long-arrow-alt-down,
-        #summary-wrapper i.fa-caret-up,
-        #summary-wrapper i.fa-caret-down {
-            font-size: 13px !important;
-            margin-right: 2px !important;
-            margin-left: 1px !important;
-            display: inline-block !important;
-            vertical-align: middle !important;
-        }
-    `;
-    document.head.appendChild(styleEl);
+            /* Mencegah teks judul atas terpotong */
+            #summary-wrapper p, #summary-wrapper span, #summary-wrapper h3 {
+                line-height: 1.3 !important;
+            }
 
-    // 3. Buat Header Capture Khusus (Poin 1: Rounded & Teks Presisi di Tengah Vertikal)
-    const captureHeader = document.createElement('div');
-    captureHeader.id = 'capture-header-temp';
-    captureHeader.style.cssText = `
-        width: 100% !important;
-        margin-bottom: 24px !important;
-        padding: 16px 24px !important;
-        border-radius: 12px !important;
-        background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important;
-        color: #ffffff !important;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        box-sizing: border-box !important;
-    `;
-    
-    // Tanggal As Of saat ini
-    const headerAsOfEl = document.getElementById('header-as-of');
-    const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+            /* Badge MTD/YTD Rapi di Tengah */
+            #summary-wrapper .rounded-full,
+            #summary-wrapper .rounded-md {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                vertical-align: middle !important;
+            }
 
-    captureHeader.innerHTML = `
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-            <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
-            <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
-        </div>
-        <div style="display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 11px; font-weight: 600; padding: 8px 18px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
-                Region Sumatera
-            </span>
-        </div>
-    `;
+            /* Ukuran Panah Proporsional & Rapi */
+            #summary-wrapper i.fa-arrow-up,
+            #summary-wrapper i.fa-arrow-down,
+            #summary-wrapper i.fa-long-arrow-alt-up,
+            #summary-wrapper i.fa-long-arrow-alt-down,
+            #summary-wrapper i.fa-caret-up,
+            #summary-wrapper i.fa-caret-down {
+                font-size: 13px !important;
+                margin-right: 3px !important;
+                margin-left: 2px !important;
+                display: inline-block !important;
+                vertical-align: middle !important;
+            }
+        `;
 
-    // Sisipkan Header ke paling atas summary-wrapper
-    summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
+        // 3. Buat Header Capture Khusus (Badge kanan center & rapi)
+        let captureHeader = document.getElementById('capture-header-temp');
+        if (captureHeader) captureHeader.remove();
 
-    // 4. Ubah Warna Panah (Poin 5: Turun = Merah, Naik = Hijau)
-    const cards = summaryWrapper.querySelectorAll('.card-shadow, .bg-white, .dark\\:bg-dark-card');
-    cards.forEach((card) => {
-        const arrows = card.querySelectorAll('i.fa-arrow-up, i.fa-arrow-down, i.fa-long-arrow-alt-up, i.fa-long-arrow-alt-down, i.fa-caret-up, i.fa-caret-down');
+        captureHeader = document.createElement('div');
+        captureHeader.id = 'capture-header-temp';
+        captureHeader.style.cssText = 'width: 100% !important; margin-bottom: 20px !important; padding: 16px 24px !important; border-radius: 12px !important; background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important; color: #ffffff !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; display: flex !important; align-items: center !important; justify-content: space-between !important; box-sizing: border-box !important;';
+
+        const headerAsOfEl = document.getElementById('header-as-of');
+        const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+
+        captureHeader.innerHTML = `
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
+                <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 11px; font-weight: 600; padding: 8px 18px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
+                    Region Sumatera
+                </span>
+            </div>
+        `;
+
+        summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
+
+        // 4. Pewarnaan Panah (Turun = Merah, Naik = Hijau)
+        const arrows = summaryWrapper.querySelectorAll('i.fa-arrow-up, i.fa-arrow-down, i.fa-long-arrow-alt-up, i.fa-long-arrow-alt-down, i.fa-caret-up, i.fa-caret-down');
         arrows.forEach(arrow => {
             arrow.dataset.origStyle = arrow.getAttribute('style') || '';
-            
             const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
             const isDown = arrow.classList.contains('fa-arrow-down') || 
                            arrow.classList.contains('fa-long-arrow-alt-down') || 
@@ -3447,51 +3439,64 @@ window.captureSummary = function(btn) {
                 arrow.style.setProperty('color', '#10b981', 'important'); // Hijau
             }
         });
-    });
 
-    // 5. Eksekusi Capture Menggunakan html2canvas
-    setTimeout(() => {
-        html2canvas(summaryWrapper, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
-            logging: false
-        }).then(canvas => {
-            // Restore Tampilan Awal & Hapus Elemen Temp
-            if (captureHeader) captureHeader.remove();
-            if (styleEl) styleEl.remove();
+        // 5. Eksekusi Capture html2canvas
+        setTimeout(function() {
+            if (typeof html2canvas === 'undefined') {
+                alert('Library html2canvas belum dimuat.');
+                if (loadingEl) loadingEl.style.display = 'none';
+                return;
+            }
 
-            cards.forEach((card) => {
-                const arrows = card.querySelectorAll('i');
+            html2canvas(summaryWrapper, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: (document.body && document.body.classList.contains('dark')) ? '#0f172a' : '#f8fafc',
+                logging: false
+            }).then(function(canvas) {
+                // Restore & Cleanup
+                if (captureHeader) captureHeader.remove();
+                if (styleEl) styleEl.remove();
+
                 arrows.forEach(arrow => {
                     if (arrow.dataset.origStyle !== undefined) {
                         arrow.setAttribute('style', arrow.dataset.origStyle);
                     }
                 });
-            });
 
-            if (loadingEl) loadingEl.style.display = 'none';
+                if (loadingEl) loadingEl.style.display = 'none';
 
-            // Download Gambar PNG
-            const link = document.createElement('a');
-            const fileNameDate = new Date().toISOString().split('T')[0];
-            link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }).catch(err => {
-            console.error('Error saat capture:', err);
-            if (captureHeader) captureHeader.remove();
-            if (styleEl) styleEl.remove();
-            if (loadingEl) loadingEl.style.display = 'none';
-            
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal Capture',
-                text: 'Terjadi kesalahan saat memproses gambar.',
-                confirmColor: '#6441A5'
+                // Download Gambar
+                const link = document.createElement('a');
+                const fileNameDate = new Date().toISOString().split('T')[0];
+                link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
+                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(function(err) {
+                console.error('Error saat capture:', err);
+                if (captureHeader) captureHeader.remove();
+                if (styleEl) styleEl.remove();
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Capture',
+                        text: 'Terjadi kesalahan saat memproses gambar: ' + err.message,
+                        confirmColor: '#6441A5'
+                    });
+                }
             });
-        });
-    }, 400);
+        }, 300);
+
+    } catch (err) {
+        console.error('Fatal Error pada captureSummary:', err);
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        alert('Terjadi kesalahan script: ' + err.message);
+    }
 };
 		
 
