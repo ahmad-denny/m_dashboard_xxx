@@ -3323,175 +3323,140 @@
         }
 
 window.captureSummary = function(btn) {
-    try {
-        const originalWrapper = document.getElementById('summary-wrapper');
-        if (!originalWrapper || originalWrapper.classList.contains('hidden')) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak Ada Tampilan Summary',
-                    text: 'Silakan buka menu Summary Performance terlebih dahulu.',
-                    confirmColor: '#6441A5'
-                });
-            } else {
-                alert('Silakan buka menu Summary Performance terlebih dahulu.');
-            }
-            return;
-        }
+    console.log("Proses captureSummary dimulai...");
 
-        // Tampilkan Indikator Loading
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'flex';
-
-        // 1. Ambil Nama Cabang User Login
-        let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION SUMATERA';
-        if (typeof cleanName === 'function') {
-            cabangUser = cleanName(cabangUser);
-        }
-        cabangUser = cabangUser.toUpperCase();
-
-        const headerAsOfEl = document.getElementById('header-as-of');
-        const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
-
-        // 2. KUNCI UKURAN DESKTOP (1400px) agar Grid/Flexbox tetap 4 kolom
-        const DESKTOP_WIDTH = 1400; 
-
-        const cloneContainer = document.createElement('div');
-        cloneContainer.style.cssText = `
-            position: absolute !important;
-            top: -9999px !important;
-            left: -9999px !important;
-            width: ${DESKTOP_WIDTH}px !important;
-            min-width: ${DESKTOP_WIDTH}px !important;
-            background-color: ${document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc'} !important;
-            padding: 24px !important;
-            box-sizing: border-box !important;
-            z-index: -9999 !important;
-        `;
-
-        // Clone elemen summary
-        const clonedWrapper = originalWrapper.cloneNode(true);
-        clonedWrapper.id = 'summary-wrapper-clone';
-        clonedWrapper.style.cssText = `
-            width: 100% !important;
-            box-sizing: border-box !important;
-        `;
-
-        // 3. Buat Header Capture Khusus
-        const captureHeader = document.createElement('div');
-        captureHeader.style.cssText = `
-            width: 100% !important;
-            margin-bottom: 20px !important;
-            padding: 16px 24px !important;
-            border-radius: 12px !important;
-            background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important;
-            color: #ffffff !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            box-sizing: border-box !important;
-        `;
-
-        captureHeader.innerHTML = `
-            <div style="display: flex; flex-direction: column; justify-content: center;">
-                <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
-                <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
-                    Region Sumatera
-                </span>
-            </div>
-        `;
-
-        clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
-
-        // 4. Buka Pembatas Height/Overflow pada Setiap Card
-        const cards = clonedWrapper.querySelectorAll('div');
-        cards.forEach(card => {
-            card.style.overflow = 'visible';
-            card.style.height = 'auto';
-            card.style.maxHeight = 'none';
-
-            if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.includes('bg-dark') || card.classList.contains('rounded-xl')) {
-                card.style.paddingTop = '18px';
-                card.style.paddingBottom = '22px';
-            }
-        });
-
-        // Perbaiki Panah Indikator
-        const arrows = clonedWrapper.querySelectorAll('i');
-        arrows.forEach(arrow => {
-            const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
-            if (isArrow) {
-                arrow.style.fontSize = '12px';
-                arrow.style.display = 'inline-block';
-                arrow.style.verticalAlign = 'middle';
-                arrow.style.marginRight = '3px';
-
-                const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
-                const isDown = arrow.className.includes('down') || parentText.includes('-');
-
-                if (isDown) {
-                    arrow.style.color = '#ef4444'; // Merah
-                } else {
-                    arrow.style.color = '#10b981'; // Hijau
-                }
-            }
-        });
-
-        // Masukkan elemen clone ke dalam body untuk diproses html2canvas
-        cloneContainer.appendChild(clonedWrapper);
-        document.body.appendChild(cloneContainer);
-
-        // 5. Eksekusi Capture dengan Ukuran Window Terkunci
-        setTimeout(function() {
-            if (typeof html2canvas === 'undefined') {
-                alert('Library html2canvas belum dimuat.');
-                if (loadingEl) loadingEl.style.display = 'none';
-                if (document.body.contains(cloneContainer)) document.body.removeChild(cloneContainer);
-                return;
-            }
-
-            html2canvas(clonedWrapper, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
-                logging: false,
-                windowWidth: DESKTOP_WIDTH,
-                width: DESKTOP_WIDTH
-            }).then(function(canvas) {
-                if (document.body.contains(cloneContainer)) {
-                    document.body.removeChild(cloneContainer);
-                }
-
-                if (loadingEl) loadingEl.style.display = 'none';
-
-                // Download Gambar PNG
-                const link = document.createElement('a');
-                const fileNameDate = new Date().toISOString().split('T')[0];
-                link.download = `Summary_Performance_${cabangUser}_${fileNameDate}.png`;
-                link.href = canvas.toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }).catch(function(err) {
-                console.error('Error html2canvas:', err);
-                if (document.body.contains(cloneContainer)) {
-                    document.body.removeChild(cloneContainer);
-                }
-                if (loadingEl) loadingEl.style.display = 'none';
-                alert('Gagal mengambil gambar: ' + err.message);
-            });
-        }, 250);
-
-    } catch (err) {
-        console.error('Fatal error captureSummary:', err);
-        const loadingEl = document.getElementById('loading');
-        if (loadingEl) loadingEl.style.display = 'none';
-        alert('Terjadi kesalahan script: ' + err.message);
+    // 1. Cek keberadaan library html2canvas
+    if (typeof html2canvas === 'undefined') {
+        alert("Library 'html2canvas' belum dimuat di halaman. Pastikan tag script html2canvas sudah terpasang.");
+        return;
     }
+
+    const summaryWrapper = document.getElementById('summary-wrapper');
+    if (!summaryWrapper || summaryWrapper.classList.contains('hidden')) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Ada Tampilan Summary',
+                text: 'Silakan buka menu Summary Performance terlebih dahulu.',
+                confirmColor: '#6441A5'
+            });
+        } else {
+            alert('Silakan buka menu Summary Performance terlebih dahulu.');
+        }
+        return;
+    }
+
+    // Tampilkan Indikator Loading
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'flex';
+
+    // 2. Eksekusi Capture dengan Fitur bawaan 'onclone'
+    html2canvas(summaryWrapper, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
+        logging: false,
+        windowWidth: 1400, // Mengunci emulasi layar ke Desktop View
+        onclone: function(clonedDoc) {
+            const clonedWrapper = clonedDoc.getElementById('summary-wrapper');
+            if (!clonedWrapper) return;
+
+            // A. KUNCI TAMPILAN DESKTOP (1350px) agar layout tetap 4 kolom
+            clonedWrapper.style.width = '1350px';
+            clonedWrapper.style.minWidth = '1350px';
+            clonedWrapper.style.maxWidth = '1350px';
+            clonedWrapper.style.boxSizing = 'border-box';
+            clonedWrapper.style.margin = '0 auto';
+            clonedWrapper.style.padding = '20px';
+
+            // B. Tambahkan Header Capture Khusus di Dokumen Clone
+            let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION SUMATERA';
+            if (typeof cleanName === 'function') cabangUser = cleanName(cabangUser);
+            cabangUser = cabangUser.toUpperCase();
+
+            const headerAsOfEl = document.getElementById('header-as-of');
+            const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
+
+            const captureHeader = clonedDoc.createElement('div');
+            captureHeader.style.cssText = `
+                width: 100% !important;
+                margin-bottom: 20px !important;
+                padding: 16px 24px !important;
+                border-radius: 12px !important;
+                background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%) !important;
+                color: #ffffff !important;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+            `;
+            captureHeader.innerHTML = `
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <h1 style="font-size: 20px; font-weight: 700; margin: 0; line-height: 1.2; color: #ffffff;">Summary Performance - ${cabangUser}</h1>
+                    <p style="font-size: 12px; margin: 5px 0 0 0; color: #e9d5ff; line-height: 1;">Data Performa & Realisasi As of: <strong style="color: #ffffff;">${asOfText}</strong></p>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 11px; font-weight: 600; padding: 6px 16px; background: rgba(255, 255, 255, 0.2); border-radius: 9999px; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">
+                        Region Sumatera
+                    </span>
+                </div>
+            `;
+            clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
+
+            // C. Buka Kuncian Height & Overflow Card agar Teks Tidak Terpotong
+            const cards = clonedWrapper.querySelectorAll('div');
+            cards.forEach(card => {
+                card.style.overflow = 'visible';
+                card.style.height = 'auto';
+                card.style.maxHeight = 'none';
+
+                if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.includes('bg-dark') || card.classList.contains('rounded-xl')) {
+                    card.style.paddingTop = '18px';
+                    card.style.paddingBottom = '22px';
+                }
+            });
+
+            // D. Perbaiki Posisi & Pewarnaan Panah
+            const arrows = clonedWrapper.querySelectorAll('i');
+            arrows.forEach(arrow => {
+                const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
+                if (isArrow) {
+                    arrow.style.fontSize = '12px';
+                    arrow.style.display = 'inline-block';
+                    arrow.style.verticalAlign = 'middle';
+                    arrow.style.marginRight = '3px';
+
+                    const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
+                    const isDown = arrow.className.includes('down') || parentText.includes('-');
+
+                    if (isDown) {
+                        arrow.style.color = '#ef4444'; // Merah
+                    } else {
+                        arrow.style.color = '#10b981'; // Hijau
+                    }
+                }
+            });
+        }
+    }).then(function(canvas) {
+        if (loadingEl) loadingEl.style.display = 'none';
+
+        // Download Hasil Gambar PNG
+        let cabangUser = (typeof currentUserCabang !== 'undefined' && currentUserCabang) ? currentUserCabang : 'REGION';
+        if (typeof cleanName === 'function') cabangUser = cleanName(cabangUser);
+        const fileNameDate = new Date().toISOString().split('T')[0];
+
+        const link = document.createElement('a');
+        link.download = `Summary_Performance_${cabangUser.toUpperCase()}_${fileNameDate}.png`;
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }).catch(function(err) {
+        console.error('Error captureSummary:', err);
+        if (loadingEl) loadingEl.style.display = 'none';
+        alert('Gagal mengambil gambar: ' + err.message);
+    });
 };
 		
         function hideSummaryView() {
