@@ -3369,18 +3369,18 @@
 		    // Sisipkan Header ke paling atas summary-wrapper
 		    summaryWrapper.insertBefore(captureHeader, summaryWrapper.firstChild);
 		
-		    // 3. Terapkan Efek Perbesar Background Value & Icon Beririsan
+		    // 3. Rapikan Efek Background Icon & Value
 		    const cards = summaryWrapper.querySelectorAll('.card-shadow, .bg-white, .dark\\:bg-dark-card');
 		    const originalStyles = [];
 		
 		    cards.forEach((card, idx) => {
-		        // Simpan style asli untuk restore nanti
+		        // Simpan style asli untuk restore
 		        originalStyles.push({
 		            position: card.style.position,
 		            overflow: card.style.overflow
 		        });
 		
-		        // Set relatif & hidden overflow agar efek watermark/icon tidak terpotong ke luar card
+		        // Set posisi relatif dan kunci overflow
 		        card.style.position = 'relative';
 		        card.style.overflow = 'hidden';
 		
@@ -3390,40 +3390,23 @@
 		            icon.dataset.origClass = icon.className;
 		            icon.dataset.origStyle = icon.getAttribute('style') || '';
 		            
-		            // Perbesar Icon dan Posisikan Beririsan di Belakang/Samping Teks Utama
-		            icon.style.fontSize = '4.5rem';
+		            // Posisikan ikon di pojok kanan bawah dengan rapi & transparan tipis
+		            icon.style.fontSize = '3rem';
 		            icon.style.position = 'absolute';
-		            icon.style.right = '-10px';
-		            icon.style.bottom = '-10px';
-		            icon.style.opacity = '0.15';
+		            icon.style.right = '8px';
+		            icon.style.bottom = '4px';
+		            icon.style.opacity = '0.08';
 		            icon.style.pointerEvents = 'none';
 		            icon.style.zIndex = '0';
 		        }
 		
-		        // Cari Angka Utama / Value
-		        const valueEl = card.querySelector('h3, .text-lg, .text-xl, .text-2xl, .font-bold');
-		        if (valueEl) {
-		            valueEl.dataset.origStyle = valueEl.getAttribute('style') || '';
-		            valueEl.style.position = 'relative';
-		            valueEl.style.zIndex = '10';
-		
-		            // Buat elemen bayangan/background value raksasa yang beririsan
-		            const bgVal = document.createElement('div');
-		            bgVal.className = 'capture-bg-value-temp';
-		            bgVal.innerText = valueEl.innerText.trim();
-		            bgVal.style.position = 'absolute';
-		            bgVal.style.left = '5px';
-		            bgVal.style.bottom = '-8px';
-		            bgVal.style.fontSize = '3.2rem';
-		            bgVal.style.fontWeight = '900';
-		            bgVal.style.lineHeight = '1';
-		            bgVal.style.opacity = '0.08';
-		            bgVal.style.pointerEvents = 'none';
-		            bgVal.style.zIndex = '0';
-		            bgVal.style.whiteSpace = 'nowrap';
-		            
-		            card.appendChild(bgVal);
-		        }
+		        // Pastikan isi asli card berada di atas z-index
+		        Array.from(card.children).forEach(child => {
+		            if (!child.classList.contains('capture-bg-value-temp')) {
+		                child.style.position = 'relative';
+		                child.style.zIndex = '2';
+		            }
+		        });
 		    });
 		
 		    // 4. Proses Capture Menggunakan html2canvas
@@ -3449,13 +3432,10 @@
 		                    icon.setAttribute('style', icon.dataset.origStyle);
 		                }
 		
-		                const bgVal = card.querySelector('.capture-bg-value-temp');
-		                if (bgVal) bgVal.remove();
-		
-		                const valueEl = card.querySelector('h3, .text-lg, .text-xl, .text-2xl, .font-bold');
-		                if (valueEl && valueEl.dataset.origStyle !== undefined) {
-		                    valueEl.setAttribute('style', valueEl.dataset.origStyle);
-		                }
+		                Array.from(card.children).forEach(child => {
+		                    child.style.position = '';
+		                    child.style.zIndex = '';
+		                });
 		            });
 		
 		            if (loadingEl) loadingEl.style.display = 'none';
