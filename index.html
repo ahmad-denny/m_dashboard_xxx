@@ -418,7 +418,7 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
+                <button id="summary-capture-btn" onclick="(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
                     <i class="fa-solid fa-camera sm:mr-1"></i> <span class="hidden sm:inline">Capture</span>
                 </button>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
@@ -3339,7 +3339,7 @@ window.captureSummary = function(btn) {
             return;
         }
 
-        // Tampilkan Loading
+        // Tampilkan Indikator Loading
         const loadingEl = document.getElementById('loading');
         if (loadingEl) loadingEl.style.display = 'flex';
 
@@ -3353,15 +3353,18 @@ window.captureSummary = function(btn) {
         const headerAsOfEl = document.getElementById('header-as-of');
         const asOfText = headerAsOfEl ? headerAsOfEl.innerText : '-';
 
-        // 2. Buat Kontainer Salinan (Off-screen Clone Container)
+        // 2. KUNCI UKURAN DESKTOP (1400px) agar Grid/Flexbox tetap 4 kolom
+        const DESKTOP_WIDTH = 1400; 
+
         const cloneContainer = document.createElement('div');
         cloneContainer.style.cssText = `
             position: absolute !important;
             top: -9999px !important;
             left: -9999px !important;
-            width: ${originalWrapper.offsetWidth || 1200}px !important;
+            width: ${DESKTOP_WIDTH}px !important;
+            min-width: ${DESKTOP_WIDTH}px !important;
             background-color: ${document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc'} !important;
-            padding: 20px !important;
+            padding: 24px !important;
             box-sizing: border-box !important;
             z-index: -9999 !important;
         `;
@@ -3369,6 +3372,10 @@ window.captureSummary = function(btn) {
         // Clone elemen summary
         const clonedWrapper = originalWrapper.cloneNode(true);
         clonedWrapper.id = 'summary-wrapper-clone';
+        clonedWrapper.style.cssText = `
+            width: 100% !important;
+            box-sizing: border-box !important;
+        `;
 
         // 3. Buat Header Capture Khusus
         const captureHeader = document.createElement('div');
@@ -3400,22 +3407,20 @@ window.captureSummary = function(btn) {
 
         clonedWrapper.insertBefore(captureHeader, clonedWrapper.firstChild);
 
-        // 4. Perbaiki Semua Card pada Salinan (Buka Terpotong & Atur Panah)
+        // 4. Buka Pembatas Height/Overflow pada Setiap Card
         const cards = clonedWrapper.querySelectorAll('div');
         cards.forEach(card => {
-            // Hilangkan pembatasan overflow & height yang memotong teks
             card.style.overflow = 'visible';
             card.style.height = 'auto';
             card.style.maxHeight = 'none';
 
-            // Jika elemen adalah card container (memiliki background/shadow)
             if (card.classList.contains('card-shadow') || card.classList.contains('bg-white') || card.className.includes('bg-dark') || card.classList.contains('rounded-xl')) {
                 card.style.paddingTop = '18px';
                 card.style.paddingBottom = '22px';
             }
         });
 
-        // Perbaiki Panah Indikator pada Salinan
+        // Perbaiki Panah Indikator
         const arrows = clonedWrapper.querySelectorAll('i');
         arrows.forEach(arrow => {
             const isArrow = arrow.className.includes('arrow') || arrow.className.includes('caret');
@@ -3425,7 +3430,6 @@ window.captureSummary = function(btn) {
                 arrow.style.verticalAlign = 'middle';
                 arrow.style.marginRight = '3px';
 
-                // Pewarnaan Panah: Kebawah/Minus = Merah, Keatas/Plus = Hijau
                 const parentText = arrow.parentElement ? arrow.parentElement.innerText : '';
                 const isDown = arrow.className.includes('down') || parentText.includes('-');
 
@@ -3441,12 +3445,12 @@ window.captureSummary = function(btn) {
         cloneContainer.appendChild(clonedWrapper);
         document.body.appendChild(cloneContainer);
 
-        // 5. Eksekusi Capture pada Elemen Salinan
+        // 5. Eksekusi Capture dengan Ukuran Window Terkunci
         setTimeout(function() {
             if (typeof html2canvas === 'undefined') {
                 alert('Library html2canvas belum dimuat.');
                 if (loadingEl) loadingEl.style.display = 'none';
-                document.body.removeChild(cloneContainer);
+                if (document.body.contains(cloneContainer)) document.body.removeChild(cloneContainer);
                 return;
             }
 
@@ -3455,10 +3459,9 @@ window.captureSummary = function(btn) {
                 useCORS: true,
                 backgroundColor: document.body.classList.contains('dark') ? '#0f172a' : '#f8fafc',
                 logging: false,
-                windowWidth: clonedWrapper.scrollWidth,
-                windowHeight: clonedWrapper.scrollHeight
+                windowWidth: DESKTOP_WIDTH,
+                width: DESKTOP_WIDTH
             }).then(function(canvas) {
-                // Hapus Salinan dari DOM
                 if (document.body.contains(cloneContainer)) {
                     document.body.removeChild(cloneContainer);
                 }
