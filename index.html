@@ -2598,12 +2598,12 @@
                     let growthDisplay = item.growth.toFixed(1) + '%';
                     let growthClass = item.growth >= 0 ? positiveClass : negativeClass;
 
-					htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-[9px] md:text-sm">
-					    <td class="px-3 py-3 font-bold text-slate-700 dark:text-slate-200 uppercase text-[9px] md:text-sm sticky-column">${item.branch}</td>
-					    <td class="px-2 py-3 text-center font-mono text-[9px] md:text-sm max-w-[100px] truncate text-muamalat-600 dark:text-muamalat-400 font-semibold">${m1Display}</td>
-					    <td class="px-2 py-3 text-center font-mono text-[9px] md:text-sm max-w-[100px] truncate text-emerald-600 dark:text-emerald-400 font-semibold">${m2Display}</td>
-					    <td class="px-2 py-3 text-center font-mono text-[9px] md:text-sm max-w-[100px] truncate ${gapClass} font-bold">${gapDisplay}</td>
-					    <td class="px-2 py-3 text-center font-mono text-[9px] md:text-sm max-w-[100px] truncate ${growthClass} font-bold">${growthDisplay}</td>
+					htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-[9px]">
+					    <td class="px-3 py-3 font-bold text-slate-700 dark:text-slate-200 uppercase text-[9px] sticky-column">${item.branch}</td>
+					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate text-muamalat-600 dark:text-muamalat-400 font-semibold">${m1Display}</td>
+					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate text-emerald-600 dark:text-emerald-400 font-semibold">${m2Display}</td>
+					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate ${gapClass} font-bold">${gapDisplay}</td>
+					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate ${growthClass} font-bold">${growthDisplay}</td>
 					</tr>`;
 					});
                 tbody.innerHTML = htmlBuffer;
