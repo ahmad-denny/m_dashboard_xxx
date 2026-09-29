@@ -675,8 +675,8 @@
 				
 				    <!-- HEADER TABEL FIXED -->
 				    <div class="overflow-hidden">
-				        <table class="w-full text-[9px] md:text-sm text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
-				            <thead class="text-[9px] md:text-sm text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 shadow-sm">
+				        <table class="w-full text-[9px] text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
+				            <thead class="text-[9px] text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 shadow-sm">
 				                <tr id="dynamic-table-header-row"></tr>
 				            </thead>
 				        </table>
@@ -684,8 +684,8 @@
 				
 				    <!-- BODY TABEL + SCROLLBAR -->
 					<div class="max-h-[400px] overflow-y-auto overflow-x-hidden" id="table-scroll-container">
-					    <table class="w-full text-[9px] md:text-sm text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
-					        <tbody id="data-table-body" class="text-[9px] md:text-sm font-semibold tracking-tight text-slate-700 dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-700">
+					    <table class="w-full text-[9px] text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
+					        <tbody id="data-table-body" class="text-[9px] font-semibold tracking-tight text-slate-700 dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-700">
 					        </tbody>
 					    </table>
 					</div>				
@@ -1233,14 +1233,14 @@
 
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate">Branch</th>`;
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[9px] font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left whitespace-nowrap" style="width:150px;">Branch</th>`;
             
             distinctProducts.forEach(prod => {
                 let displayProdName = prod === "Sme" ? "SME" : prod.replace(/_/g, ' ');
-                headerHtml += `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
+                headerHtml += `<th scope="col" class="px-2 py-2 text-[9px] text-center font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
             });
             
-            headerHtml += `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold bg-slate-50 dark:bg-slate-800 max-w-[90px] whitespace-normal break-words">Total<br>Amount</th>`;
+            headerHtml += `<th scope="col" class="px-2 py-2 text-[9px] text-center font-bold bg-slate-50 dark:bg-slate-800 max-w-[90px] whitespace-normal break-words">Total<br>Amount</th>`;
             headerRow.innerHTML = headerHtml;
             
             //const compSubLabels = document.getElementById('dynamic-group-pct-labels');
@@ -2600,7 +2600,7 @@
                     let growthClass = item.growth >= 0 ? positiveClass : negativeClass;
 
 					htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-[9px]">
-					    <td class="px-3 py-3 font-mono text-slate-700 dark:text-slate-200 text-[8px] sticky-column">${item.branch}</td>
+					    <td class="px-3 py-3 font-mono text-slate-700 dark:text-slate-200 text-[9px] whitespace-nowrap sticky-column" style="width:150px;">${item.branch}</td>
 					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate text-muamalat-600 dark:text-muamalat-400 font-semibold">${m1Display}</td>
 					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate text-emerald-600 dark:text-emerald-400 font-semibold">${m2Display}</td>
 					    <td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate ${gapClass} font-bold">${gapDisplay}</td>
@@ -2639,17 +2639,17 @@
                     let displayVal = item[prod] || 0;
                     if (isBillionFormat) displayVal = formatToBillion(displayVal);
                     else displayVal = formatNumber(displayVal);
-                    productCellsHtml += `<td class="px-2 py-3 text-center font-mono text-xs md:text-sm max-w-[100px] truncate" style="color: ${productColors[prod]};">${displayVal}</td>`;
+                    productCellsHtml += `<td class="px-2 py-3 text-center font-mono text-[9px] max-w-[100px] truncate" style="color: ${productColors[prod]};">${displayVal}</td>`;
                 });
                 
                 let totalDisplay = item.total;
                 if (isBillionFormat) totalDisplay = formatToBillion(totalDisplay);
                 else totalDisplay = formatNumber(totalDisplay);
                 
-                htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-xs md:text-base">
-                    <td class="px-3 py-3 font-medium sticky-column"><span class="text-slate-700 dark:text-slate-200 font-semibold text-xs md:text-sm">${item.name}</span></td>
+                htmlBuffer += `<tr class="bg-white dark:bg-dark-card border-b dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-[9px]">
+                    <td class="px-3 py-3 font-medium whitespace-nowrap sticky-column" style="width:150px;"><span class="text-slate-700 dark:text-slate-200 font-semibold text-[9px]">${item.name}</span></td>
                     ${productCellsHtml}
-                    <td class="px-3 py-3 text-center font-mono font-bold text-slate-800 dark:text-white text-xs md:text-sm">${totalDisplay}</td>
+                    <td class="px-3 py-3 text-center font-mono font-bold text-slate-800 dark:text-white text-[9px]">${totalDisplay}</td>
                 </tr>`;
             });
             tbody.innerHTML = htmlBuffer;
@@ -2918,19 +2918,19 @@
             const displayName = itemName === "Sme" ? "SME" : itemName.replace(/_/g, ' ');
             const sortableTh = "cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors";
             
-            let headerHtml = `<th scope="col" onclick="sortComparisonTable('branch')" class="px-2 py-2 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate ${sortableTh}">Branch${getSortIcon('branch')}</th>`;
+            let headerHtml = `<th scope="col" onclick="sortComparisonTable('branch')" class="px-2 py-2 text-[9px] font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left whitespace-nowrap ${sortableTh}" style="width:150px;">Branch${getSortIcon('branch')}</th>`;
             
             // Kolom M1
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('m1')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-muamalat-600 dark:text-muamalat-400 ${sortableTh}">${m1}${getSortIcon('m1')}</th>`;
+            headerHtml += `<th scope="col" onclick="sortComparisonTable('m1')" class="px-2 py-2 text-[9px] text-center font-bold whitespace-normal break-words max-w-[100px] text-muamalat-600 dark:text-muamalat-400 ${sortableTh}">${m1}${getSortIcon('m1')}</th>`;
             
             // Kolom M2
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('m2')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-emerald-600 dark:text-emerald-400 ${sortableTh}">${m2}${getSortIcon('m2')}</th>`;
+            headerHtml += `<th scope="col" onclick="sortComparisonTable('m2')" class="px-2 py-2 text-[9px] text-center font-bold whitespace-normal break-words max-w-[100px] text-emerald-600 dark:text-emerald-400 ${sortableTh}">${m2}${getSortIcon('m2')}</th>`;
             
             // Kolom Gap
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('gap')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-slate-600 dark:text-slate-300 ${sortableTh}">Gap${getSortIcon('gap')}<br><span class="text-[8px] text-slate-400 font-normal">${m1} vs ${m2}</span></th>`;
+            headerHtml += `<th scope="col" onclick="sortComparisonTable('gap')" class="px-2 py-2 text-[9px] text-center font-bold whitespace-normal break-words max-w-[100px] text-slate-600 dark:text-slate-300 ${sortableTh}">Gap${getSortIcon('gap')}<br><span class="text-[9px] text-slate-400 font-normal">${m1} vs ${m2}</span></th>`;
             
             // Kolom Growth %
-            headerHtml += `<th scope="col" onclick="sortComparisonTable('growth')" class="px-2 py-2 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[100px] text-blue-600 dark:text-blue-400 ${sortableTh}">Growth %${getSortIcon('growth')}</th>`;
+            headerHtml += `<th scope="col" onclick="sortComparisonTable('growth')" class="px-2 py-2 text-[9px] text-center font-bold whitespace-normal break-words max-w-[100px] text-blue-600 dark:text-blue-400 ${sortableTh}">Growth %${getSortIcon('growth')}</th>`;
             
             headerRow.innerHTML = headerHtml;
             
