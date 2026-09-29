@@ -1082,7 +1082,7 @@
                 const cfg = csvFilesConfig[idx];
                 const btn = document.createElement('button');
                 btn.id = `tab-csv-${idx}`;
-                btn.className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${idx === currentActiveFileIndex ? csvTabActiveClass : csvTabInactiveClass}`;
+                btn.className = `w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs transition-all focus:outline-none ${idx === currentActiveFileIndex ? csvTabActiveClass : csvTabInactiveClass}`;
                 btn.innerHTML = `<i class="fa-solid ${cfg.icon} w-4 text-center shrink-0"></i> <span class="nav-text truncate">${cfg.name}</span>`;
                 btn.onclick = () => switchCSVTab(idx);
                 container.appendChild(btn);
@@ -1111,8 +1111,8 @@
             const selector = document.getElementById('month-selector');
             const selectedMonth = selector ? selector.value : null;
             
-            document.getElementById(`tab-csv-${currentActiveFileIndex}`).className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${csvTabInactiveClass}`;
-            document.getElementById(`tab-csv-${index}`).className = `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all focus:outline-none ${csvTabActiveClass}`;
+            document.getElementById(`tab-csv-${currentActiveFileIndex}`).className = `w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs transition-all focus:outline-none ${csvTabInactiveClass}`;
+            document.getElementById(`tab-csv-${index}`).className = `w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs transition-all focus:outline-none ${csvTabActiveClass}`;
             
             currentActiveFileIndex = index;
             if (csvFilesConfig[index].isSummary) {
