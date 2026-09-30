@@ -2874,6 +2874,7 @@
             window.lastExportItemName = selectedItem;
             window.lastExportMonth1 = month1;
             window.lastExportMonth2 = month2;
+            window.lastCompareFilters = getCurrentFilterParts(); // simpan filter aktif untuk subtitle hasil capture
             
             // Apply sort default (Month 1, descending) — sudah urut dari proses awal,
             // tapi reset state agar konsisten setiap buka comparison baru
@@ -2988,8 +2989,19 @@
             return titleEl ? titleEl.innerText.trim() : 'Comparison Data';
         }
 
+        // Ambil filter Co-Branch & Branch yang sedang aktif (teks yang tampil di dropdown)
+        function getCurrentFilterParts() {
+            const read = (id) => {
+                const sel = document.getElementById(id);
+                if (!sel || !sel.value || sel.value === 'ALL') return '';
+                const txt = (sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].text : sel.value) || sel.value;
+                return String(txt).trim();
+            };
+            return { coBranch: read('filter-CO-BRANCH'), branch: read('filter-OFFICE') };
+        }
+
         // Header khusus untuk Capture Hasil Compare: logo - garis vertikal - title Comparison - printed by <user login>
-        // (gaya sama dengan header capture Summary Performance)
+        // Di bawah title: filter Co-Branch & Branch (jika tidak difilter -> Region Sumatera)
         function buildComparisonCaptureHeader(isDark) {
             const comparisonTitle = (getComparisonTitle() || 'Comparison Data').trim();
             let user = (document.getElementById('userNameChip')?.textContent || '').trim();
@@ -3001,6 +3013,15 @@
             const cLine = isDark ? '#334155' : '#e2e8f0';
             const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
+            // Subtitle filter (snapshot saat Compare dijalankan; cadangan: filter saat ini)
+            const f = window.lastCompareFilters || getCurrentFilterParts();
+            const val = (t) => `<span style="font-weight:600;color:${cAccent};">${esc(t)}</span>`;
+            const parts = [];
+            if (f.coBranch) parts.push(`Co-Branch ${val(f.coBranch)}`);
+            if (f.branch) parts.push(`Branch ${val(f.branch)}`);
+            const filterHtml = parts.length ? parts.join(` <span style="margin:0 4px;">&bull;</span> `) : val('Region Sumatera');
+            const subHtml = `<div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">${filterHtml}</div>`;
+
             const el = document.createElement('div');
             el.id = 'comparison-capture-header';
             el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:0 0 12px 0;border-bottom:2px solid ${cLine};`;
@@ -3010,21 +3031,21 @@
 
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
-                // Mobile: logo | garis | title + printed by (ditumpuk)
                 el.innerHTML = `
                     ${logoHtml}
                     <div style="min-width:0;">
                         <div style="font-size:16px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
-                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
+                        ${subHtml}
+                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
                     </div>`;
             } else {
-                // Desktop: logo | garis | title ..................... printed by
                 el.innerHTML = `
                     ${logoHtml}
-                    <div style="min-width:0;display:flex;align-items:center;">
+                    <div style="min-width:0;display:flex;flex-direction:column;justify-content:center;">
                         <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
+                        ${subHtml}
                     </div>
-                    ${user ? `<div style="margin-left:auto;align-self:center;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;padding-left:16px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
+                    ${user ? `<div style="margin-left:auto;align-self:flex-end;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;padding-left:16px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
             }
             return el;
         }
@@ -3117,6 +3138,15 @@
                     }
                 }
                 captureWrap.appendChild(cardClone);
+
+                // Ikon sort: yang netral dibuang, yang aktif diganti panah (font ikon sort tidak ter-embed -> tampil kotak)
+                cardClone.querySelectorAll('i.fa-sort').forEach(i => i.remove());
+                cardClone.querySelectorAll('i.fa-sort-up, i.fa-sort-down').forEach(i => {
+                    const up = i.classList.contains('fa-sort-up');
+                    i.classList.remove('fa-sort-up', 'fa-sort-down');
+                    i.classList.add(up ? 'fa-arrow-up' : 'fa-arrow-down');
+                    i.style.fontSize = '10px';
+                });
 
                 // Ikon Font Awesome -> SVG inline (tampil pasti di hasil capture)
                 restoreIcons = swapSummaryIconsToSvg(captureWrap);
