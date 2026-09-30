@@ -2988,7 +2988,7 @@
             return titleEl ? titleEl.innerText.trim() : 'Comparison Data';
         }
 
-        function captureTable(format) {
+		function captureTable(format) {
             closeCaptureMenu();
 
             if (!comparisonData || !comparisonData.length) {
@@ -3020,9 +3020,6 @@
             let captureClone = null;
 
             // Capture menggunakan CLONE agar seluruh baris tabel ikut dirender.
-            // Tabel di dashboard memiliki max-height: 400px + overflow-y:auto,
-            // sehingga html2canvas langsung pada elemen asli hanya menangkap
-            // bagian yang sedang terlihat/terbatas oleh scrollbar.
             try {
                 captureClone = tableContainer.cloneNode(true);
                 captureClone.id = 'table-card-capture-clone';
@@ -3035,10 +3032,29 @@
                 captureClone.style.overflow = 'visible';
                 captureClone.style.background = bgColor;
                 captureClone.style.zIndex = '-1';
+                captureClone.style.padding = '16px'; // Tambahkan padding agar rapi seperti Summary Capture
 
                 // Hilangkan tombol/menu Capture dari hasil gambar.
                 const cloneCaptureWrapper = captureClone.querySelector('#capture-menu-wrapper');
                 if (cloneCaptureWrapper) cloneCaptureWrapper.remove();
+
+                // -------------------------------------------------------------
+                // SISIPKAN HEADER CAPTURE PERSIS DENGAN SUMMARY PERFORMANCE
+                // -------------------------------------------------------------
+                const capHeader = buildSummaryCaptureHeader(isDark);
+                captureClone.insertBefore(capHeader, captureClone.firstChild);
+
+                // Muat logo BMI (data URI) agar ter-render sempurna di gambar
+                getSummaryLogoDataUrl().then(dataUrl => {
+                    const img = capHeader.querySelector('#summary-capture-logo');
+                    if (img && dataUrl) {
+                        img.src = dataUrl;
+                    }
+                }).catch(() => {});
+
+                // Swap ikon FontAwesome di header clone ke SVG jika ada
+                const restoreIcons = swapSummaryIconsToSvg(captureClone);
+                // -------------------------------------------------------------
 
                 // Buka penuh area body tabel agar SEMUA data ter-render.
                 const cloneScroll = captureClone.querySelector('#table-scroll-container');
@@ -3089,6 +3105,7 @@
                     alert('Gagal mengambil screenshot: ' + err.message);
                 })
                 .finally(() => {
+                    if (restoreIcons) restoreIcons();
                     if (captureClone && captureClone.parentNode) captureClone.parentNode.removeChild(captureClone);
                     btn.innerHTML = originalContent;
                     btn.disabled = originalDisabled;
