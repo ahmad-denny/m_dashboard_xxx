@@ -2776,6 +2776,27 @@
                 return;
             }
 
+            // Validasi urutan bulan: Month 1 (Base) wajib lebih baru daripada Month 2 (Compare).
+            // monthColumns berasal dari header CSV dan tersusun kronologis. Perbandingan
+            // menggunakan posisi/index agar aman terhadap format nama bulan yang digunakan data.
+            const month1Index = monthColumns.indexOf(month1);
+            const month2Index = monthColumns.indexOf(month2);
+
+            if (month1Index !== -1 && month2Index !== -1 && month1Index < month2Index) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Urutan Bulan Tidak Valid',
+                        text: 'Bulan 1 (Base) harus lebih baru dari Bulan 2 (Compare)!',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#6441A5'
+                    });
+                } else {
+                    alert('Bulan 1 (Base) harus lebih baru dari Bulan 2 (Compare)!');
+                }
+                return;
+            }
+
             // Gunakan filteredData untuk memastikan kita hanya mengexport branch yang sesuai filter sidebar
             const branchMap = {};
             
