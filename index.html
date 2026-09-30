@@ -685,7 +685,7 @@
 				    <!-- HEADER TABEL FIXED -->
 				    <div class="overflow-hidden">
 				        <table class="w-full text-[11px] text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
-				            <thead class="text-[11px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 shadow-sm">
+				            <thead class="text-[11px] text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 shadow-sm">
 				                <tr id="dynamic-table-header-row"></tr>
 				            </thead>
 				        </table>
@@ -2966,7 +2966,7 @@
             headerRow.innerHTML = headerHtml;
             
             // Update Title Tabel
-            document.getElementById('table-title').innerText = `Comparison Data ${displayName.toUpperCase()} Between ${m1.toUpperCase()} And ${m2.toUpperCase()}`;
+            document.getElementById('table-title').innerText = `COMPARISON DATA ${displayName.toUpperCase()} BETWEEN ${m1.toUpperCase()} AND ${m2.toUpperCase()}`;
         }
 
         function toggleCaptureMenu() {
@@ -3004,10 +3004,20 @@
         // Di bawah title: filter Co-Branch & Branch (jika tidak difilter -> Region Sumatera)
         function buildComparisonCaptureHeader(isDark) {
             // Judul untuk capture dibuat dari data aslinya (bukan dari #table-title yang di-uppercase oleh kode & CSS)
-            let comparisonTitle = (getComparisonTitle() || 'Comparison Data').trim();
-            if (window.lastExportItemName && window.lastExportMonth1 && window.lastExportMonth2) {
-                const itemName = window.lastExportItemName === 'Sme' ? 'SME' : String(window.lastExportItemName).replace(/_/g, ' ');
-                comparisonTitle = `Comparison Data ${itemName} Between ${window.lastExportMonth1} And ${window.lastExportMonth2}`;
+            const compareMode = !!(isComparisonMode && comparisonData && comparisonData.length);
+            let comparisonTitle;
+            if (compareMode) {
+                comparisonTitle = (getComparisonTitle() || 'Comparison Data').trim();
+                if (window.lastExportItemName && window.lastExportMonth1 && window.lastExportMonth2) {
+                    const itemName = window.lastExportItemName === 'Sme' ? 'SME' : String(window.lastExportItemName).replace(/_/g, ' ');
+                    comparisonTitle = `Comparison Data ${itemName} Between ${window.lastExportMonth1} And ${window.lastExportMonth2}`;
+                }
+            } else {
+                comparisonTitle = 'Detailed Breakdown';
+                try {
+                    const prod = csvFilesConfig[currentActiveFileIndex].name.split(' / ')[0].trim();
+                    if (prod) comparisonTitle += ' ' + prod;
+                } catch (e) {}
             }
             let user = (document.getElementById('userNameChip')?.textContent || '').trim();
             if (user === '-') user = '';
@@ -3019,11 +3029,16 @@
             const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
             // Subtitle filter (snapshot saat Compare dijalankan; cadangan: filter saat ini)
-            const f = window.lastCompareFilters || getCurrentFilterParts();
+            const f = compareMode ? (window.lastCompareFilters || getCurrentFilterParts()) : getCurrentFilterParts();
             const val = (t) => `<span style="font-weight:600;color:${cAccent};">${esc(t)}</span>`;
             const parts = [];
             if (f.coBranch) parts.push(`Co-Branch ${val(f.coBranch)}`);
             if (f.branch) parts.push(`Branch ${val(f.branch)}`);
+            if (!compareMode) {
+                const asOf = (document.getElementById('header-as-of')?.innerText || '').trim();
+                if (asOf && asOf !== '-') parts.push(`As of ${val(asOf)}`);
+            }
+            if (!compareMode && !f.coBranch && !f.branch) parts.unshift(val('Region Sumatera'));
             const filterHtml = parts.length ? parts.join(` <span style="margin:0 4px;">&bull;</span> `) : val('Region Sumatera');
             const subHtml = `<div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">${filterHtml}</div>`;
 
@@ -3058,18 +3073,17 @@
         function captureTable(format) {
             closeCaptureMenu();
 
-            if (!comparisonData || !comparisonData.length) {
-                alert('There are no comparison result tables available to save.');
-                return;
-            }
+            // Dua mode: hasil Compare (isComparisonMode) atau tabel Detailed Breakdown (default)
+            const compareMode = !!(isComparisonMode && comparisonData && comparisonData.length);
 
             if (format === 'excel') {
-                exportComparisonToExcel();
+                if (compareMode) exportComparisonToExcel();
+                else exportBreakdownToExcel();
                 return;
             }
 
             if (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined') {
-                alert('The library screenshot is not ready yet. Please refresh the page.');
+                alert('Library screenshot belum siap. Silakan refresh halaman.');
                 return;
             }
 
@@ -3198,7 +3212,7 @@
 
                 const run = prepareLogo().then(() => (typeof htmlToImage !== 'undefined')
                     ? withHtmlToImage().catch(err => {
-                        console.warn('html-to-image failed; using html2canvas:', err);
+                        console.warn('html-to-image gagal, memakai html2canvas:', err);
                         if (typeof html2canvas === 'undefined') throw err;
                         return withHtml2Canvas();
                     })
@@ -3207,26 +3221,56 @@
                 run.then(dataUrl => {
                     const link = document.createElement('a');
                     const timestamp = new Date().toISOString().slice(0, 10);
-                    const safeTitle = getComparisonTitle().replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
-                    link.download = `${safeTitle || 'Comparison_Data'}_${timestamp}.png`;
+                    const fileTitle = compareMode
+                        ? getComparisonTitle()
+                        : (capHeader.querySelector('div[style*="font-size:20px"], div[style*="font-size:16px"]')?.textContent || 'Detailed Breakdown');
+                    const safeTitle = fileTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+                    link.download = `${safeTitle || (compareMode ? 'Comparison_Data' : 'Detailed_Breakdown')}_${timestamp}.png`;
                     link.href = dataUrl;
                     link.click();
                 })
                 .catch(err => {
                     console.error('Capture Error:', err);
-                    alert('Failed to take a screenshot: ' + (err && err.message ? err.message : err));
+                    alert('Gagal mengambil screenshot: ' + (err && err.message ? err.message : err));
                 })
                 .finally(cleanup);
             } catch (err) {
                 console.error('Capture Setup Error:', err);
                 cleanup();
-                alert('Failed to set up capture: ' + err.message);
+                alert('Gagal menyiapkan capture: ' + err.message);
             }
+        }
+
+        // Export Excel untuk tabel Detailed Breakdown: mengambil header & baris sesuai yang tampil di layar
+        function exportBreakdownToExcel() {
+            if (typeof XLSX === 'undefined') {
+                alert('Library Excel belum siap. Silakan refresh halaman.');
+                return;
+            }
+            const headerCells = Array.from(document.querySelectorAll('#dynamic-table-header-row th'));
+            const bodyRows = Array.from(document.querySelectorAll('#data-table-body tr'));
+            if (!headerCells.length || !bodyRows.length) {
+                alert('Belum ada data tabel yang dapat disimpan.');
+                return;
+            }
+            const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+            const rows = [headerCells.map(th => clean(th.innerText))];
+            bodyRows.forEach(tr => rows.push(Array.from(tr.querySelectorAll('td')).map(td => clean(td.innerText))));
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = rows[0].map((_, i) => ({ wch: i === 0 ? 32 : 18 }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Detailed Breakdown');
+            const timestamp = new Date().toISOString().slice(0, 10);
+            let prod = '';
+            try { prod = csvFilesConfig[currentActiveFileIndex].name.split(' / ')[0].trim(); } catch (e) {}
+            const safe = ('Detailed_Breakdown_' + prod).replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+            XLSX.writeFile(wb, `${safe}_${timestamp}.xlsx`);
         }
 
         function exportComparisonToExcel() {
             if (typeof XLSX === 'undefined') {
-                alert('The Excel library is not ready. Please refresh the page.');
+                alert('Library Excel belum siap. Silakan refresh halaman.');
                 return;
             }
 
