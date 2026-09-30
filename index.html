@@ -2988,42 +2988,43 @@
             return titleEl ? titleEl.innerText.trim() : 'Comparison Data';
         }
 
-		// Header khusus untuk Capture Hasil Compare / Comparison Data
+        // Header khusus untuk Capture Hasil Compare: logo - garis vertikal - title Comparison - printed by <user login>
+        // (gaya sama dengan header capture Summary Performance)
         function buildComparisonCaptureHeader(isDark) {
-            // 1. Ambil judul dari elemen #table-title
-            const comparisonTitle = (document.getElementById('table-title')?.innerText || getComparisonTitle()).trim();
+            const comparisonTitle = (getComparisonTitle() || 'Comparison Data').trim();
             let user = (document.getElementById('userNameChip')?.textContent || '').trim();
             if (user === '-') user = '';
-            
+
             const cTitle = isDark ? '#ffffff' : '#1e293b';
             const cSub = '#94a3b8';
             const cAccent = isDark ? '#9F7ED8' : '#6441A5';
             const cLine = isDark ? '#334155' : '#e2e8f0';
-            
             const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-            
+
             const el = document.createElement('div');
             el.id = 'comparison-capture-header';
             el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:0 0 12px 0;border-bottom:2px solid ${cLine};`;
-            
+
             const logoHtml = `<img id="comparison-capture-logo" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
                 <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
-            
+
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
+                // Mobile: logo | garis | title + printed by (ditumpuk)
                 el.innerHTML = `
                     ${logoHtml}
                     <div style="min-width:0;">
                         <div style="font-size:16px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
-                        ${user ? `<div style="font-size:11px;line-height:1.4;color:${cSub};margin-top:2px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
+                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
                     </div>`;
             } else {
+                // Desktop: logo | garis | title ..................... printed by
                 el.innerHTML = `
                     ${logoHtml}
                     <div style="min-width:0;display:flex;align-items:center;">
-                        <div style="font-size:18px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
+                        <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
                     </div>
-                    ${user ? `<div style="margin-left:auto;align-self:center;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
+                    ${user ? `<div style="margin-left:auto;align-self:center;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;padding-left:16px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
             }
             return el;
         }
@@ -3041,7 +3042,7 @@
                 return;
             }
 
-            if (typeof html2canvas === 'undefined') {
+            if (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined') {
                 alert('Library screenshot belum siap. Silakan refresh halaman.');
                 return;
             }
@@ -3055,104 +3056,135 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
             btn.disabled = true;
 
-            const isDark = document.documentElement.classList.contains('dark');
-            const bgColor = isDark ? '#1e293b' : '#ffffff';
-            let captureClone = null;
+            // Dark mode di aplikasi ini ada di <body>, sama seperti captureSummary
+            const isDark = document.body.classList.contains('dark');
+            const bgColor = isDark ? '#0f172a' : '#f8fafc'; // sama dengan background area konten (seperti capture Summary)
+            const pad = 16;
+            let captureWrap = null;
+            let restoreIcons = null;
+
+            const cleanup = () => {
+                if (restoreIcons) { try { restoreIcons(); } catch (e) {} }
+                if (captureWrap && captureWrap.parentNode) captureWrap.parentNode.removeChild(captureWrap);
+                btn.innerHTML = originalContent;
+                btn.disabled = originalDisabled;
+            };
 
             try {
-                captureClone = tableContainer.cloneNode(true);
-                captureClone.id = 'table-card-capture-clone';
-                captureClone.style.position = 'absolute';
-                captureClone.style.left = '-100000px';
-                captureClone.style.top = '0';
-                captureClone.style.width = Math.max(tableContainer.scrollWidth, tableContainer.offsetWidth) + 'px';
-                captureClone.style.height = 'auto';
-                captureClone.style.maxHeight = 'none';
-                captureClone.style.overflow = 'visible';
-                captureClone.style.background = bgColor;
-                captureClone.style.zIndex = '-1';
-                captureClone.style.padding = '16px';
+                // Ukur lebar asli tabel (termasuk bagian yang tersembunyi di scroll horizontal)
+                const liveScroll = tableContainer.querySelector('#table-scroll-container');
+                const liveInner = liveScroll ? liveScroll.parentElement : null;
+                const extra = liveInner ? (tableContainer.offsetWidth - liveInner.clientWidth) : 0;
+                const cardWidth = Math.max(tableContainer.offsetWidth, liveInner ? liveInner.scrollWidth + extra : 0);
 
-                // Hilangkan tombol/menu Capture dari hasil gambar.
-                const cloneCaptureWrapper = captureClone.querySelector('#capture-menu-wrapper');
-                if (cloneCaptureWrapper) cloneCaptureWrapper.remove();
+                // Wrapper capture (di luar layar): [header] + [kartu tabel]
+                captureWrap = document.createElement('div');
+                captureWrap.id = 'table-card-capture-wrap';
+                captureWrap.style.cssText = `position:absolute;left:-100000px;top:0;z-index:-1;box-sizing:border-box;padding:${pad}px;background:${bgColor};width:${cardWidth + pad * 2}px;`;
 
-                // 5. HAPUS JUDUL DI ATAS TABEL DARI CLONE (supaya tidak duplikat dengan header capture)
-                const cloneTitle = captureClone.querySelector('#table-title');
-                if (cloneTitle) cloneTitle.remove();
-
-                // 1 & 2 & 3. SISIPKAN HEADER CAPTURE COMPARISON KHUSUS
+                // Header: logo - garis vertikal - title Comparison - printed by <user>
                 const capHeader = buildComparisonCaptureHeader(isDark);
-                captureClone.insertBefore(capHeader, captureClone.firstChild);
+                captureWrap.appendChild(capHeader);
 
-                // 4. MUAT LOGO DARI getSummaryLogoDataUrl()
-                getSummaryLogoDataUrl().then(dataUrl => {
-                    const img = capHeader.querySelector('#comparison-capture-logo');
-                    if (img && dataUrl) {
-                        img.src = dataUrl;
-                    }
-                }).catch(() => {});
+                // Kartu tabel (clone) tanpa baris judul & tombol Capture (judul sudah ada di header)
+                const cardClone = tableContainer.cloneNode(true);
+                cardClone.removeAttribute('id');
+                cardClone.style.width = cardWidth + 'px';
+                cardClone.style.height = 'auto';
+                cardClone.style.maxHeight = 'none';
+                cardClone.style.overflow = 'visible';
+                cardClone.style.margin = '0';
+                const cloneTitle = cardClone.querySelector('#table-title');
+                if (cloneTitle && cloneTitle.parentElement && cloneTitle.parentElement !== cardClone) {
+                    cloneTitle.parentElement.remove(); // buang seluruh baris judul (judul + menu Capture)
+                } else if (cloneTitle) {
+                    cloneTitle.remove();
+                }
+                const cloneMenu = cardClone.querySelector('#capture-menu-wrapper');
+                if (cloneMenu) cloneMenu.remove();
 
-                // Swap ikon FontAwesome ke SVG di clone jika ada
-                const restoreIcons = swapSummaryIconsToSvg(captureClone);
-
-                // Buka penuh area body tabel agar SEMUA data ter-render.
-                const cloneScroll = captureClone.querySelector('#table-scroll-container');
+                // Buka penuh area body tabel agar SEMUA baris ter-render
+                const cloneScroll = cardClone.querySelector('#table-scroll-container');
                 if (cloneScroll) {
                     cloneScroll.style.maxHeight = 'none';
                     cloneScroll.style.height = 'auto';
-                    cloneScroll.style.overflowY = 'visible';
-                    cloneScroll.style.overflowX = 'visible';
+                    cloneScroll.style.overflow = 'visible';
+                    const cloneInner = cloneScroll.parentElement;
+                    if (cloneInner) {
+                        cloneInner.style.overflow = 'visible';
+                        cloneInner.style.height = 'auto';
+                        cloneInner.style.maxHeight = 'none';
+                    }
                 }
+                captureWrap.appendChild(cardClone);
 
-                const cloneTableWrapper = captureClone.querySelector('#table-scroll-container')?.parentElement;
-                if (cloneTableWrapper) {
-                    cloneTableWrapper.style.overflow = 'visible';
-                    cloneTableWrapper.style.height = 'auto';
-                    cloneTableWrapper.style.maxHeight = 'none';
-                }
+                // Ikon Font Awesome -> SVG inline (tampil pasti di hasil capture)
+                restoreIcons = swapSummaryIconsToSvg(captureWrap);
 
-                document.body.appendChild(captureClone);
+                document.body.appendChild(captureWrap);
 
-                const captureWidth = captureClone.scrollWidth;
-                const captureHeight = captureClone.scrollHeight;
+                // Isi logo (data URI) lalu tunggu siap; jika gagal, logo dibuang saja
+                const prepareLogo = () => getSummaryLogoDataUrl().then(dataUrl => {
+                    const img = capHeader.querySelector('#comparison-capture-logo');
+                    if (!img) return;
+                    if (!dataUrl) { img.remove(); return; }
+                    img.src = dataUrl;
+                    return (img.decode ? img.decode() : Promise.resolve()).catch(() => {});
+                });
 
-                html2canvas(captureClone, {
+                const withHtmlToImage = () => getSummaryFontCss().then(fontCss => {
+                    const w = captureWrap.offsetWidth;
+                    const h = captureWrap.offsetHeight;
+                    const opts = {
+                        pixelRatio: 2,
+                        backgroundColor: bgColor,
+                        cacheBust: true,
+                        width: w,
+                        height: h,
+                        // wrapper aslinya di luar layar; reset posisi agar konten masuk ke gambar
+                        style: { position: 'static', left: 'auto', top: 'auto', zIndex: 'auto', margin: '0', width: w + 'px' }
+                    };
+                    if (fontCss && fontCss.trim()) opts.fontEmbedCSS = fontCss;
+                    return htmlToImage.toPng(captureWrap, opts);
+                });
+
+                const withHtml2Canvas = () => html2canvas(captureWrap, {
                     scale: 2,
                     useCORS: true,
                     backgroundColor: bgColor,
                     logging: false,
-                    width: captureWidth,
-                    height: captureHeight,
-                    windowWidth: Math.max(window.innerWidth, captureWidth),
-                    windowHeight: Math.max(window.innerHeight, captureHeight),
+                    width: captureWrap.offsetWidth,
+                    height: captureWrap.offsetHeight,
+                    windowWidth: Math.max(window.innerWidth, captureWrap.offsetWidth),
+                    windowHeight: Math.max(window.innerHeight, captureWrap.offsetHeight),
                     scrollX: 0,
-                    scrollY: 0,
-                    ignoreElements: (element) => element.closest?.('#capture-menu-wrapper')
-                })
-                .then(canvas => {
+                    scrollY: 0
+                }).then(canvas => canvas.toDataURL('image/png', 1.0));
+
+                const run = prepareLogo().then(() => (typeof htmlToImage !== 'undefined')
+                    ? withHtmlToImage().catch(err => {
+                        console.warn('html-to-image gagal, memakai html2canvas:', err);
+                        if (typeof html2canvas === 'undefined') throw err;
+                        return withHtml2Canvas();
+                    })
+                    : withHtml2Canvas());
+
+                run.then(dataUrl => {
                     const link = document.createElement('a');
                     const timestamp = new Date().toISOString().slice(0, 10);
                     const safeTitle = getComparisonTitle().replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
                     link.download = `${safeTitle || 'Comparison_Data'}_${timestamp}.png`;
-                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.href = dataUrl;
                     link.click();
                 })
                 .catch(err => {
                     console.error('Capture Error:', err);
-                    alert('Gagal mengambil screenshot: ' + err.message);
+                    alert('Gagal mengambil screenshot: ' + (err && err.message ? err.message : err));
                 })
-                .finally(() => {
-                    if (restoreIcons) restoreIcons();
-                    if (captureClone && captureClone.parentNode) captureClone.parentNode.removeChild(captureClone);
-                    btn.innerHTML = originalContent;
-                    btn.disabled = originalDisabled;
-                });
+                .finally(cleanup);
             } catch (err) {
                 console.error('Capture Setup Error:', err);
-                if (captureClone && captureClone.parentNode) captureClone.parentNode.removeChild(captureClone);
-                btn.innerHTML = originalContent;
-                btn.disabled = originalDisabled;
+                cleanup();
                 alert('Gagal menyiapkan capture: ' + err.message);
             }
         }
