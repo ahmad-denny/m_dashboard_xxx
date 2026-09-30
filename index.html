@@ -2786,13 +2786,13 @@
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Urutan Bulan Tidak Valid',
-                        text: 'Bulan 1 (Base) harus lebih baru dari Bulan 2 (Compare)!',
+                        title: 'Invalid Month Order',
+                        text: 'Month 1 (Base) must be more recent than Month 2 (Compare)!',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#6441A5'
                     });
                 } else {
-                    alert('Bulan 1 (Base) harus lebih baru dari Bulan 2 (Compare)!');
+                    alert('Month 1 (Base) must be more recent than Month 2 (Compare)!');
                 }
                 return;
             }
@@ -3660,7 +3660,7 @@
                 </div>
                 <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
                     <i class="fa-solid fa-circle-info mt-0.5"></i>
-                    <span>Data perbandingan akan ditampilkan langsung di tabel utama dashboard.</span>
+                    <span>Comparison data will be displayed directly in the dashboard's main table..</span>
                 </div>
             </div>
             <div class="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-end gap-2">
