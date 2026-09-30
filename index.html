@@ -143,6 +143,56 @@
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
         }
         
+
+        /* ===== MOBILE: Tabel Detailed Breakdown — semua kolom bisa di-scroll (tidak terpotong) ===== */
+        @media (max-width: 768px) {
+            /* Satu area scroll (horizontal + vertikal) untuk header & body sekaligus */
+            div.bd-scroll {
+                overflow: auto;
+                max-height: 460px;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+            }
+            /* Header & body melebar sesuai lebar tabel, bukan dipotong selebar layar */
+            div.bd-head, div.bd-body {
+                width: max-content;
+                min-width: 100%;
+                overflow: visible;
+                max-height: none;
+            }
+            /* Header tetap menempel di atas saat scroll ke bawah */
+            div.bd-head {
+                position: sticky;
+                top: 0;
+                z-index: 20;
+            }
+            /* Lebar tabel = kolom Branch + (jumlah kolom data x lebar kolom). --bd-cols diisi via JS */
+            table.bd-table {
+                table-layout: fixed;
+                min-width: 0;
+                width: calc(130px + var(--bd-cols, 5) * 92px);
+            }
+            /* Kolom Branch: nama panjang turun baris, tidak menimpa kolom sebelahnya */
+            table.bd-table .sticky-column {
+                width: 130px !important;
+                min-width: 130px !important;
+                max-width: 130px !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere;
+                line-height: 1.25;
+            }
+            table.bd-table td.sticky-column { background-color: inherit; }
+            /* Kolom angka: tampil penuh, tidak dipotong "…" */
+            table.bd-table th:not(.sticky-column),
+            table.bd-table td:not(.sticky-column) {
+                max-width: none !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                white-space: nowrap !important;
+            }
+            table.bd-table th:not(.sticky-column) { white-space: normal !important; }
+        }
+
         .mom-badge {
             display: inline-flex;
             align-items: center;
@@ -680,11 +730,11 @@
                         </div>
                     </div>
                 </div>
-				<div class="w-full border border-slate-100 dark:border-slate-700 rounded-[10px] overflow-x-auto">
+				<div class="bd-scroll w-full border border-slate-100 dark:border-slate-700 rounded-[10px] overflow-x-auto">
 				
 				    <!-- HEADER TABEL FIXED -->
-				    <div class="overflow-hidden">
-				        <table class="w-full text-[11px] text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
+				    <div class="bd-head overflow-hidden">
+				        <table class="bd-table w-full text-[11px] text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
 				            <thead class="text-[11px] text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 shadow-sm">
 				                <tr id="dynamic-table-header-row"></tr>
 				            </thead>
@@ -692,8 +742,8 @@
 				    </div>
 				
 				    <!-- BODY TABEL + SCROLLBAR -->
-					<div class="max-h-[400px] overflow-y-auto overflow-x-hidden" id="table-scroll-container">
-					    <table class="w-full text-[11px] text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
+					<div class="bd-body max-h-[400px] overflow-y-auto overflow-x-hidden" id="table-scroll-container">
+					    <table class="bd-table w-full text-[11px] text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
 					        <tbody id="data-table-body" class="text-[11px] font-semibold tracking-tight text-slate-700 dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-700">
 					        </tbody>
 					    </table>
@@ -1240,6 +1290,14 @@
             updateDashboard();
         }
 
+        // Mobile: sinkronkan jumlah kolom data ke CSS var agar lebar tabel header & body sama persis
+        function syncBreakdownTableCols() {
+            const hr = document.getElementById('dynamic-table-header-row');
+            if (!hr) return;
+            const n = Math.max(hr.children.length - 1, 1);
+            document.querySelectorAll('#table-card-container table.bd-table').forEach(t => t.style.setProperty('--bd-cols', n));
+        }
+
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
             let headerHtml = `<th scope="col" class="px-2 py-2 text-[11px] font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left whitespace-nowrap" style="width:180px;">Branch</th>`;
@@ -1251,6 +1309,7 @@
             
             headerHtml += `<th scope="col" class="px-2 py-2 text-[11px] text-center font-bold bg-slate-50 dark:bg-slate-800 max-w-[90px] whitespace-normal break-words">Total<br>Amount</th>`;
             headerRow.innerHTML = headerHtml;
+            syncBreakdownTableCols();
             
             //const compSubLabels = document.getElementById('dynamic-group-pct-labels');
             //if (compSubLabels) {
@@ -2964,6 +3023,7 @@
             headerHtml += `<th scope="col" onclick="sortComparisonTable('growth')" class="px-2 py-2 text-[11px] text-center font-bold whitespace-normal break-words max-w-[100px] text-blue-600 dark:text-blue-400 ${sortableTh}">Growth %${getSortIcon('growth')}</th>`;
             
             headerRow.innerHTML = headerHtml;
+            syncBreakdownTableCols();
             
             // Update Title Tabel
             document.getElementById('table-title').innerText = `COMPARISON DATA ${displayName.toUpperCase()} BETWEEN ${m1.toUpperCase()} AND ${m2.toUpperCase()}`;
