@@ -2989,6 +2989,15 @@
             return titleEl ? titleEl.innerText.trim() : 'Comparison Data';
         }
 
+        // Judul Comparison dengan huruf normal (untuk nama file), mis. "Comparison Data Consumer Between Sep-26 And Agu-26"
+        function getComparisonDisplayTitle() {
+            if (window.lastExportItemName && window.lastExportMonth1 && window.lastExportMonth2) {
+                const itemName = window.lastExportItemName === 'Sme' ? 'SME' : String(window.lastExportItemName).replace(/_/g, ' ');
+                return `Comparison Data ${itemName} Between ${window.lastExportMonth1} And ${window.lastExportMonth2}`;
+            }
+            return getComparisonTitle() || 'Comparison Data';
+        }
+
         // Ambil filter Co-Branch & Branch yang sedang aktif (teks yang tampil di dropdown)
         function getCurrentFilterParts() {
             const read = (id) => {
@@ -3222,7 +3231,7 @@
                     const link = document.createElement('a');
                     const timestamp = new Date().toISOString().slice(0, 10);
                     const fileTitle = compareMode
-                        ? getComparisonTitle()
+                        ? getComparisonDisplayTitle()
                         : (capHeader.querySelector('div[style*="font-size:20px"], div[style*="font-size:16px"]')?.textContent || 'Detailed Breakdown');
                     const safeTitle = fileTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
                     link.download = `${safeTitle || (compareMode ? 'Comparison_Data' : 'Detailed_Breakdown')}_${timestamp}.png`;
@@ -3327,7 +3336,7 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Compare');
             const timestamp = new Date().toISOString().slice(0, 10);
-            const safeTitle = title.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+            const safeTitle = getComparisonDisplayTitle().replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
             XLSX.writeFile(wb, `${safeTitle || ('Comparison_' + displayName)}_${timestamp}.xlsx`);
         }
 
