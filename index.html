@@ -2966,7 +2966,7 @@
             headerRow.innerHTML = headerHtml;
             
             // Update Title Tabel
-            document.getElementById('table-title').innerText = `Comparison Data ${displayName.toUpperCase()} Between ${m1.toUpperCase()} And ${m2.toUpperCase()}`;
+            document.getElementById('table-title').innerText = `COMPARISON DATA ${displayName.toUpperCase()} BETWEEN ${m1.toUpperCase()} AND ${m2.toUpperCase()}`;
         }
 
         function toggleCaptureMenu() {
@@ -3003,7 +3003,12 @@
         // Header khusus untuk Capture Hasil Compare: logo - garis vertikal - title Comparison - printed by <user login>
         // Di bawah title: filter Co-Branch & Branch (jika tidak difilter -> Region Sumatera)
         function buildComparisonCaptureHeader(isDark) {
-            const comparisonTitle = (getComparisonTitle() || 'Comparison Data').trim();
+            // Judul untuk capture dibuat dari data aslinya (bukan dari #table-title yang di-uppercase oleh kode & CSS)
+            let comparisonTitle = (getComparisonTitle() || 'Comparison Data').trim();
+            if (window.lastExportItemName && window.lastExportMonth1 && window.lastExportMonth2) {
+                const itemName = window.lastExportItemName === 'Sme' ? 'SME' : String(window.lastExportItemName).replace(/_/g, ' ');
+                comparisonTitle = `Comparison Data ${itemName} Between ${window.lastExportMonth1} And ${window.lastExportMonth2}`;
+            }
             let user = (document.getElementById('userNameChip')?.textContent || '').trim();
             if (user === '-') user = '';
 
