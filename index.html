@@ -2988,7 +2988,47 @@
             return titleEl ? titleEl.innerText.trim() : 'Comparison Data';
         }
 
-		function captureTable(format) {
+		// Header khusus untuk Capture Hasil Compare / Comparison Data
+        function buildComparisonCaptureHeader(isDark) {
+            // 1. Ambil judul dari elemen #table-title
+            const comparisonTitle = (document.getElementById('table-title')?.innerText || getComparisonTitle()).trim();
+            let user = (document.getElementById('userNameChip')?.textContent || '').trim();
+            if (user === '-') user = '';
+            
+            const cTitle = isDark ? '#ffffff' : '#1e293b';
+            const cSub = '#94a3b8';
+            const cAccent = isDark ? '#9F7ED8' : '#6441A5';
+            const cLine = isDark ? '#334155' : '#e2e8f0';
+            
+            const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+            
+            const el = document.createElement('div');
+            el.id = 'comparison-capture-header';
+            el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:0 0 12px 0;border-bottom:2px solid ${cLine};`;
+            
+            const logoHtml = `<img id="comparison-capture-logo" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
+                <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
+            
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                el.innerHTML = `
+                    ${logoHtml}
+                    <div style="min-width:0;">
+                        <div style="font-size:16px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
+                        ${user ? `<div style="font-size:11px;line-height:1.4;color:${cSub};margin-top:2px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
+                    </div>`;
+            } else {
+                el.innerHTML = `
+                    ${logoHtml}
+                    <div style="min-width:0;display:flex;align-items:center;">
+                        <div style="font-size:18px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
+                    </div>
+                    ${user ? `<div style="margin-left:auto;align-self:center;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
+            }
+            return el;
+        }
+
+        function captureTable(format) {
             closeCaptureMenu();
 
             if (!comparisonData || !comparisonData.length) {
@@ -3019,7 +3059,6 @@
             const bgColor = isDark ? '#1e293b' : '#ffffff';
             let captureClone = null;
 
-            // Capture menggunakan CLONE agar seluruh baris tabel ikut dirender.
             try {
                 captureClone = tableContainer.cloneNode(true);
                 captureClone.id = 'table-card-capture-clone';
@@ -3032,29 +3071,30 @@
                 captureClone.style.overflow = 'visible';
                 captureClone.style.background = bgColor;
                 captureClone.style.zIndex = '-1';
-                captureClone.style.padding = '16px'; // Tambahkan padding agar rapi seperti Summary Capture
+                captureClone.style.padding = '16px';
 
                 // Hilangkan tombol/menu Capture dari hasil gambar.
                 const cloneCaptureWrapper = captureClone.querySelector('#capture-menu-wrapper');
                 if (cloneCaptureWrapper) cloneCaptureWrapper.remove();
 
-                // -------------------------------------------------------------
-                // SISIPKAN HEADER CAPTURE PERSIS DENGAN SUMMARY PERFORMANCE
-                // -------------------------------------------------------------
-                const capHeader = buildSummaryCaptureHeader(isDark);
+                // 5. HAPUS JUDUL DI ATAS TABEL DARI CLONE (supaya tidak duplikat dengan header capture)
+                const cloneTitle = captureClone.querySelector('#table-title');
+                if (cloneTitle) cloneTitle.remove();
+
+                // 1 & 2 & 3. SISIPKAN HEADER CAPTURE COMPARISON KHUSUS
+                const capHeader = buildComparisonCaptureHeader(isDark);
                 captureClone.insertBefore(capHeader, captureClone.firstChild);
 
-                // Muat logo BMI (data URI) agar ter-render sempurna di gambar
+                // 4. MUAT LOGO DARI getSummaryLogoDataUrl()
                 getSummaryLogoDataUrl().then(dataUrl => {
-                    const img = capHeader.querySelector('#summary-capture-logo');
+                    const img = capHeader.querySelector('#comparison-capture-logo');
                     if (img && dataUrl) {
                         img.src = dataUrl;
                     }
                 }).catch(() => {});
 
-                // Swap ikon FontAwesome di header clone ke SVG jika ada
+                // Swap ikon FontAwesome ke SVG di clone jika ada
                 const restoreIcons = swapSummaryIconsToSvg(captureClone);
-                // -------------------------------------------------------------
 
                 // Buka penuh area body tabel agar SEMUA data ter-render.
                 const cloneScroll = captureClone.querySelector('#table-scroll-container');
@@ -3065,7 +3105,6 @@
                     cloneScroll.style.overflowX = 'visible';
                 }
 
-                // Jangan biarkan wrapper tabel memotong isi saat clone dirender.
                 const cloneTableWrapper = captureClone.querySelector('#table-scroll-container')?.parentElement;
                 if (cloneTableWrapper) {
                     cloneTableWrapper.style.overflow = 'visible';
@@ -3075,7 +3114,6 @@
 
                 document.body.appendChild(captureClone);
 
-                // Force layout agar scrollHeight sudah mencerminkan seluruh baris.
                 const captureWidth = captureClone.scrollWidth;
                 const captureHeight = captureClone.scrollHeight;
 
