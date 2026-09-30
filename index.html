@@ -665,11 +665,20 @@
             <div class="bg-white dark:bg-dark-card rounded-[10px] p-3 pt-1.5 md:p-5 md:pt-2.5 card-shadow border-l-4-t-2 border-muamalat-500 transition-colors duration-300" id="table-card-container">
 			    <div class="flex justify-between items-center mb-2">
 			        <h3 class="font-semibold text-[9px] text-xs md:text-sm text-slate-700 dark:text-slate-200 uppercase" id="table-title">Detailed Breakdown</h3>
-                    <!-- TOMBOL CAPTURE BARU 
-                    <button onclick="captureTable()" class="px-2 py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center gap-1">
-                        <i class="fa-solid fa-camera"></i> Capture
-                    </button>
-					-->
+                    <div class="relative" id="capture-menu-wrapper">
+                        <button onclick="toggleCaptureMenu()" id="capture-btn" class="px-2.5 py-1.5 text-[10px] font-semibold text-white bg-muamalat-600 hover:bg-muamalat-700 rounded shadow-sm transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-camera"></i> Capture
+                            <i class="fa-solid fa-chevron-down text-[8px]"></i>
+                        </button>
+                        <div id="capture-menu" class="hidden absolute right-0 top-full mt-1 z-50 min-w-[150px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl overflow-hidden">
+                            <button onclick="captureTable('image')" class="w-full px-3 py-2 text-left text-[10px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+                                <i class="fa-solid fa-image text-muamalat-600"></i> Simpan sebagai Gambar
+                            </button>
+                            <button onclick="captureTable('excel')" class="w-full px-3 py-2 text-left text-[10px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 border-t border-slate-100 dark:border-slate-700">
+                                <i class="fa-solid fa-file-excel text-emerald-600"></i> Simpan sebagai Excel
+                            </button>
+                        </div>
+                    </div>
                 </div>
 				<div class="w-full border border-slate-100 dark:border-slate-700 rounded-[10px] overflow-x-auto">
 				
@@ -2786,13 +2795,13 @@
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Invalid Month Order',
-                        text: 'Month 1 (Base) must be more recent than Month 2 (Compare)!',
+                        title: 'Urutan Bulan Tidak Valid',
+                        text: 'Bulan 1 (Base) harus lebih baru dari Bulan 2 (Compare)!',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#6441A5'
                     });
                 } else {
-                    alert('Month 1 (Base) must be more recent than Month 2 (Compare)!');
+                    alert('Bulan 1 (Base) harus lebih baru dari Bulan 2 (Compare)!');
                 }
                 return;
             }
@@ -2959,62 +2968,133 @@
             document.getElementById('table-title').innerText = `COMPARISON DATA ${displayName.toUpperCase()} BETWEEN ${m1.toUpperCase()} AND ${m2.toUpperCase()}`;
         }
 
-        function captureTable() {
-            // Cek apakah library sudah dimuat
+        function toggleCaptureMenu() {
+            const menu = document.getElementById('capture-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function closeCaptureMenu() {
+            const menu = document.getElementById('capture-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('capture-menu-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) closeCaptureMenu();
+        });
+
+        function getComparisonTitle() {
+            const titleEl = document.getElementById('table-title');
+            return titleEl ? titleEl.innerText.trim() : 'Comparison Data';
+        }
+
+        function captureTable(format) {
+            closeCaptureMenu();
+
+            if (!comparisonData || !comparisonData.length) {
+                alert('Belum ada tabel hasil compare yang dapat disimpan.');
+                return;
+            }
+
+            if (format === 'excel') {
+                exportComparisonToExcel();
+                return;
+            }
+
             if (typeof html2canvas === 'undefined') {
-                alert("Library screenshot belum siap. Silakan refresh halaman.");
+                alert('Library screenshot belum siap. Silakan refresh halaman.');
                 return;
             }
 
             const tableContainer = document.getElementById('table-card-container');
-            const btn = event.currentTarget;
-            
-            // Simpan state tombol asli
+            const btn = document.getElementById('capture-btn');
+            if (!tableContainer || !btn) return;
+
             const originalContent = btn.innerHTML;
             const originalDisabled = btn.disabled;
-            
-            // Ubah tombol jadi loading state
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
             btn.disabled = true;
 
-            // Deteksi tema saat ini untuk background canvas
             const isDark = document.documentElement.classList.contains('dark');
-            const bgColor = isDark ? '#1e293b' : '#ffffff'; // dark-card color / white
-
-            // Konfigurasi html2canvas yang aman untuk tabel kompleks
+            const bgColor = isDark ? '#1e293b' : '#ffffff';
             const options = {
-                scale: 2, // Resolusi tinggi (2x) agar teks tajam
-                useCORS: true, // Izinkan gambar cross-origin jika ada
-                backgroundColor: bgColor, // Pastikan background tidak transparan
+                scale: 2,
+                useCORS: true,
+                backgroundColor: bgColor,
                 logging: false,
                 windowWidth: tableContainer.scrollWidth,
                 windowHeight: tableContainer.scrollHeight,
-                ignoreElements: (element) => {
-                    // Abaikan tombol capture itu sendiri agar tidak ikut ter-capture
-                    return element === btn;
-                }
+                ignoreElements: (element) => element === btn || element.closest?.('#capture-menu-wrapper')
             };
 
             html2canvas(tableContainer, options)
                 .then(canvas => {
-                    // Buat link download
                     const link = document.createElement('a');
                     const timestamp = new Date().toISOString().slice(0, 10);
-                    link.download = `Table_Capture_${timestamp}.png`;
-                    link.href = canvas.toDataURL("image/png", 1.0);
+                    const safeTitle = getComparisonTitle().replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+                    link.download = `${safeTitle || 'Comparison_Data'}_${timestamp}.png`;
+                    link.href = canvas.toDataURL('image/png', 1.0);
                     link.click();
-                    
-                    // Kembalikan tombol
-                    btn.innerHTML = originalContent;
-                    btn.disabled = originalDisabled;
                 })
                 .catch(err => {
-                    console.error("Capture Error:", err);
-                    alert("Gagal mengambil screenshot: " + err.message);
+                    console.error('Capture Error:', err);
+                    alert('Gagal mengambil screenshot: ' + err.message);
+                })
+                .finally(() => {
                     btn.innerHTML = originalContent;
                     btn.disabled = originalDisabled;
                 });
         }
+
+        function exportComparisonToExcel() {
+            if (typeof XLSX === 'undefined') {
+                alert('Library Excel belum siap. Silakan refresh halaman.');
+                return;
+            }
+
+            const title = getComparisonTitle();
+            const displayName = window.lastExportItemName === 'Sme' ? 'SME' : (window.lastExportItemName || '').replace(/_/g, ' ');
+            const m1 = window.lastExportMonth1 || '';
+            const m2 = window.lastExportMonth2 || '';
+
+            const rows = [[title], [], ['Branch', m1, m2, `Gap (${m1} vs ${m2})`, 'Growth %']];
+            comparisonData.forEach(item => {
+                rows.push([
+                    item.branch,
+                    item.m1,
+                    item.m2,
+                    item.gap,
+                    Number(item.growth || 0) / 100
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+            ws['!cols'] = [
+                { wch: 32 },
+                { wch: 18 },
+                { wch: 18 },
+                { wch: 20 },
+                { wch: 14 }
+            ];
+
+            // Format judul dan header agar file Excel langsung siap dipakai.
+            if (ws['A1']) ws['A1'].s = { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } };
+            ['A3','B3','C3','D3','E3'].forEach(cell => {
+                if (ws[cell]) ws[cell].s = { font: { bold: true }, alignment: { horizontal: 'center' } };
+            });
+            for (let r = 4; r <= rows.length; r++) {
+                if (ws[`E${r}`]) ws[`E${r}`].z = '0.0%';
+                ['B','C','D'].forEach(col => { if (ws[`${col}${r}`]) ws[`${col}${r}`].z = '#,##0.00'; });
+            }
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Compare');
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const safeTitle = title.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
+            XLSX.writeFile(wb, `${safeTitle || ('Comparison_' + displayName)}_${timestamp}.xlsx`);
+        }
+
         // 1. Hapus nilai penyimpanan tema lama di browser
         localStorage.removeItem('theme');
         localStorage.removeItem('color-theme');
@@ -3660,7 +3740,7 @@
                 </div>
                 <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
                     <i class="fa-solid fa-circle-info mt-0.5"></i>
-                    <span>Comparison data will be displayed directly in the dashboard's main table.</span>
+                    <span>Data perbandingan akan ditampilkan langsung di tabel utama dashboard.</span>
                 </div>
             </div>
             <div class="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-end gap-2">
