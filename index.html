@@ -469,9 +469,19 @@
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
                 -->
-                <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
-                    <i class="fa-solid fa-camera sm:mr-1"></i> <span class="hidden sm:inline">Capture</span>
-                </button>
+                <div class="relative" id="summary-capture-btn" style="display:none;">
+                    <button type="button" onclick="toggleSummaryCaptureMenu(event)" id="summary-capture-trigger" title="Capture" class="h-8 px-2.5 sm:h-auto sm:py-1.5 text-[10px] font-semibold text-white bg-muamalat-600 hover:bg-muamalat-700 rounded shadow-sm transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-camera"></i> <i class="fa-solid fa-chevron-down text-[8px]"></i>
+                    </button>
+                    <div id="summary-capture-menu" class="hidden absolute right-0 top-full mt-1 z-50 min-w-[150px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-xl overflow-hidden">
+                        <button type="button" onclick="summaryCaptureAction('image')" class="w-full px-3 py-2 text-left text-[10px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-image text-muamalat-600"></i> Save as Image
+                        </button>
+                        <button type="button" onclick="summaryCaptureAction('excel')" class="w-full px-3 py-2 text-left text-[10px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap border-t border-slate-100 dark:border-slate-700">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i> Save as Excel
+                        </button>
+                    </div>
+                </div>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
                     <option value="">Loading...</option>
                 </select>
@@ -3982,6 +3992,85 @@
                     btn.innerHTML = originalContent;
                     btn.disabled = false;
                });
+        }
+
+        // --- Menu Capture Summary (Save as Image / Save as Excel) ---
+        function toggleSummaryCaptureMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('summary-capture-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function closeSummaryCaptureMenu() {
+            const menu = document.getElementById('summary-capture-menu');
+            if (menu) menu.classList.add('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('summary-capture-btn');
+            if (wrapper && !wrapper.contains(e.target)) closeSummaryCaptureMenu();
+        });
+
+        function summaryCaptureAction(format) {
+            closeSummaryCaptureMenu();
+            if (format === 'excel') { exportSummaryToExcel(); return; }
+            const trigger = document.getElementById('summary-capture-trigger');
+            if (trigger) captureSummary(trigger);
+        }
+
+        // Export Excel Summary Performance: mengambil kartu yang tampil di layar (per section produk)
+        function exportSummaryToExcel() {
+            if (typeof XLSX === 'undefined') {
+                alert('Library Excel belum siap. Silakan refresh halaman.');
+                return;
+            }
+            const wrap = document.getElementById('summary-wrapper');
+            const sections = wrap ? Array.from(wrap.querySelectorAll('section')) : [];
+            if (!sections.length) {
+                alert('Belum ada data summary yang dapat disimpan.');
+                return;
+            }
+            const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+            const asOf = clean(document.getElementById('header-as-of')?.textContent);
+            const userLoc = clean(document.getElementById('userLocChip')?.textContent) || 'default';
+            const f = (typeof getCurrentFilterParts === 'function') ? getCurrentFilterParts() : { coBranch: '', branch: '' };
+
+            const title = 'Summary Performance';
+            const header = ['Kategori', 'Metrik', 'Nilai', 'MTD', 'YTD', 'Keterangan'];
+            const rows = [[title], ['As of', asOf || '-']];
+            if (f.coBranch) rows.push(['Co-Branch', f.coBranch]);
+            if (f.branch) rows.push(['Branch', f.branch]);
+            rows.push([], header);
+
+            sections.forEach(sec => {
+                const cat = clean(sec.querySelector('h3')?.textContent);
+                sec.querySelectorAll('.card-shadow').forEach(card => {
+                    const label = clean(card.querySelector('p')?.textContent);
+                    const value = clean(card.querySelector('h3')?.textContent);
+                    let mtd = '', ytd = '';
+                    card.querySelectorAll('.mom-badge').forEach(b => {
+                        const t = clean(b.textContent);
+                        if (/^MTD/i.test(t)) mtd = clean(t.replace(/^MTD/i, ''));
+                        else if (/^YTD/i.test(t)) ytd = clean(t.replace(/^YTD/i, ''));
+                    });
+                    const note = clean(card.querySelector('.mt-1')?.textContent);
+                    rows.push([cat, label, value, mtd, ytd, note]);
+                });
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }];
+            ws['!cols'] = [{ wch: 28 }, { wch: 26 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
+            if (ws['A1']) ws['A1'].s = { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } };
+            const hr = rows.findIndex(r => r === header);
+            for (let c = 0; c < header.length; c++) {
+                const cell = XLSX.utils.encode_cell({ r: hr, c });
+                if (ws[cell]) ws[cell].s = { font: { bold: true }, alignment: { horizontal: 'center' } };
+            }
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Summary Performance');
+            XLSX.writeFile(wb, `Summary_Performance_${userLoc}.xlsx`);
         }
 
         function hideSummaryView() {
