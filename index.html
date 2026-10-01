@@ -3922,10 +3922,13 @@
 
             const download = (dataUrl) => {
                 const link = document.createElement('a');
-                const timestamp = new Date().toISOString().slice(0, 10);
-//                link.download = `Summary_Performance_${timestamp}.png`;
-				const userLoc = document.getElementById('userLocChip')?.textContent.trim() || 'default';
-				link.download = `Summary_Performance_${userLoc}.png`;				
+                // Nama file = title header (ikut filter Co-Branch/Branch) diikuti tanggal "As of" di header
+                const slug = (t) => String(t || '').replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '');
+                const titleText = document.getElementById('dashboard-main-title')?.innerText || 'Summary Performance';
+                let asOfText = (document.getElementById('header-as-of')?.innerText || '').trim();
+                if (asOfText === '-') asOfText = '';
+                const datePart = slug(asOfText) || new Date().toISOString().slice(0, 10);
+                link.download = `${slug(titleText) || 'Summary_Performance'}_${datePart}.png`;
 				link.href = dataUrl;
                 link.click();
             };
