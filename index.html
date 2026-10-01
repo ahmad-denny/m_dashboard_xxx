@@ -3068,6 +3068,59 @@
             return { coBranch: read('filter-CO-BRANCH'), branch: read('filter-OFFICE') };
         }
 
+        // Header capture bersama (dipakai capture Summary Performance & capture tabel/Compare):
+        // logo - garis vertikal - title; di bawahnya filter (Region/Co-Branch/Branch) + As of; Printed by di kanan bawah
+        function buildCaptureHeaderEl(o) {
+            let user = (document.getElementById('userNameChip')?.textContent || '').trim();
+            if (user === '-') user = '';
+
+            const cTitle = o.isDark ? '#ffffff' : '#1e293b';
+            const cSub = '#94a3b8';
+            const cAccent = o.isDark ? '#9F7ED8' : '#6441A5';
+            const cLine = o.isDark ? '#334155' : '#e2e8f0';
+            const esc = (t) => String(t).replace(/[&<>\"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+            const f = o.filters || getCurrentFilterParts();
+            const val = (t) => `<span style="font-weight:600;color:${cAccent};">${esc(t)}</span>`;
+            const parts = [];
+            if (f.coBranch) parts.push(`Co-Branch ${val(f.coBranch)}`);
+            if (f.branch) parts.push(`Branch ${val(f.branch)}`);
+            if (o.showAsOf) {
+                const asOf = (document.getElementById('header-as-of')?.innerText || '').trim();
+                if (asOf && asOf !== '-') parts.push(`As of ${val(asOf)}`);
+            }
+            if (o.showAsOf && !f.coBranch && !f.branch) parts.unshift(val('Region Sumatera'));
+            const filterHtml = parts.length ? parts.join(` <span style="margin:0 4px;">&bull;</span> `) : val('Region Sumatera');
+            const subHtml = `<div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">${filterHtml}</div>`;
+
+            const el = document.createElement('div');
+            el.id = o.headerId;
+            el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:${o.margin};border-bottom:2px solid ${cLine};`;
+
+            const logoHtml = `<img id="${o.logoId}" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
+                <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
+
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                el.innerHTML = `
+                    ${logoHtml}
+                    <div style="min-width:0;">
+                        <div style="font-size:16px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(o.title)}</div>
+                        ${subHtml}
+                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
+                    </div>`;
+            } else {
+                el.innerHTML = `
+                    ${logoHtml}
+                    <div style="min-width:0;display:flex;flex-direction:column;justify-content:center;">
+                        <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(o.title)}</div>
+                        ${subHtml}
+                    </div>
+                    ${user ? `<div style="margin-left:auto;align-self:flex-end;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;padding-left:16px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
+            }
+            return el;
+        }
+
         // Header khusus untuk Capture Hasil Compare: logo - garis vertikal - title Comparison - printed by <user login>
         // Di bawah title: filter Co-Branch & Branch (jika tidak difilter -> Region Sumatera)
         function buildComparisonCaptureHeader(isDark) {
@@ -3087,55 +3140,15 @@
                     if (prod) comparisonTitle += ' ' + prod;
                 } catch (e) {}
             }
-            let user = (document.getElementById('userNameChip')?.textContent || '').trim();
-            if (user === '-') user = '';
-
-            const cTitle = isDark ? '#ffffff' : '#1e293b';
-            const cSub = '#94a3b8';
-            const cAccent = isDark ? '#9F7ED8' : '#6441A5';
-            const cLine = isDark ? '#334155' : '#e2e8f0';
-            const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-
-            // Subtitle filter (snapshot saat Compare dijalankan; cadangan: filter saat ini)
-            const f = compareMode ? (window.lastCompareFilters || getCurrentFilterParts()) : getCurrentFilterParts();
-            const val = (t) => `<span style="font-weight:600;color:${cAccent};">${esc(t)}</span>`;
-            const parts = [];
-            if (f.coBranch) parts.push(`Co-Branch ${val(f.coBranch)}`);
-            if (f.branch) parts.push(`Branch ${val(f.branch)}`);
-            if (!compareMode) {
-                const asOf = (document.getElementById('header-as-of')?.innerText || '').trim();
-                if (asOf && asOf !== '-') parts.push(`As of ${val(asOf)}`);
-            }
-            if (!compareMode && !f.coBranch && !f.branch) parts.unshift(val('Region Sumatera'));
-            const filterHtml = parts.length ? parts.join(` <span style="margin:0 4px;">&bull;</span> `) : val('Region Sumatera');
-            const subHtml = `<div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">${filterHtml}</div>`;
-
-            const el = document.createElement('div');
-            el.id = 'comparison-capture-header';
-            el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:0 0 12px 0;border-bottom:2px solid ${cLine};`;
-
-            const logoHtml = `<img id="comparison-capture-logo" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
-                <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
-
-            const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                el.innerHTML = `
-                    ${logoHtml}
-                    <div style="min-width:0;">
-                        <div style="font-size:16px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
-                        ${subHtml}
-                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
-                    </div>`;
-            } else {
-                el.innerHTML = `
-                    ${logoHtml}
-                    <div style="min-width:0;display:flex;flex-direction:column;justify-content:center;">
-                        <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(comparisonTitle)}</div>
-                        ${subHtml}
-                    </div>
-                    ${user ? `<div style="margin-left:auto;align-self:flex-end;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;padding-left:16px;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
-            }
-            return el;
+            return buildCaptureHeaderEl({
+                isDark,
+                title: comparisonTitle,
+                filters: compareMode ? (window.lastCompareFilters || getCurrentFilterParts()) : getCurrentFilterParts(),
+                showAsOf: !compareMode,
+                headerId: 'comparison-capture-header',
+                logoId: 'comparison-capture-logo',
+                margin: '0 0 12px 0'
+            });
         }
 
         function captureTable(format) {
@@ -3848,43 +3861,15 @@
 
         // Header title khusus hasil capture (dipasang sementara, dilepas lagi setelah capture)
         function buildSummaryCaptureHeader(isDark) {
-            const title = (document.getElementById('dashboard-main-title')?.innerText || 'Summary Performance').trim();
-            const asOf = (document.getElementById('header-as-of')?.innerText || '').trim();
-            let user = (document.getElementById('userNameChip')?.textContent || '').trim();
-            if (user === '-') user = '';
-            const cTitle = isDark ? '#ffffff' : '#1e293b';
-            const cSub = '#94a3b8';
-            const cAccent = isDark ? '#9F7ED8' : '#6441A5';
-            const cLine = isDark ? '#334155' : '#e2e8f0';
-            const esc = (t) => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-            const el = document.createElement('div');
-            el.id = 'summary-capture-header';
-            el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:0 0 4px 0;border-bottom:2px solid ${cLine};`;
-            const logoHtml = `<img id="summary-capture-logo" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
-                <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
-            const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                // Mobile: 4 baris -> Summary Performance / cabang user / as of / printed by
-                let userLoc = (document.getElementById('userLocChip')?.textContent || '').trim();
-                if (userLoc === '-') userLoc = '';
-                el.innerHTML = `
-                    ${logoHtml}
-                    <div style="min-width:0;">
-                        <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">Summary Performance</div>
-                        ${userLoc ? `<div style="font-size:14px;line-height:1.4;color:${cAccent};margin-top:2px;font-weight:700;">${esc(userLoc)}</div>` : ''}
-                        <div style="font-size:12px;line-height:1.4;color:${cSub};">As of <span style="font-weight:600;color:${cAccent};">${esc(asOf || '-')}</span></div>
-                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
-                    </div>`;
-            } else {
-                el.innerHTML = `
-                    ${logoHtml}
-                    <div style="min-width:0;">
-                        <div style="font-size:20px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(title)}</div>
-                        <div style="font-size:12px;line-height:1.4;color:${cSub};margin-top:2px;">As of <span style="font-weight:600;color:${cAccent};">${esc(asOf || '-')}</span></div>
-                    </div>
-                    ${user ? `<div style="margin-left:auto;align-self:flex-end;text-align:right;font-size:12px;line-height:1.4;color:${cSub};white-space:nowrap;">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}`;
-            }
-            return el;
+            return buildCaptureHeaderEl({
+                isDark,
+                title: 'Summary Performance',
+                filters: getCurrentFilterParts(),
+                showAsOf: true,
+                headerId: 'summary-capture-header',
+                logoId: 'summary-capture-logo',
+                margin: '0 0 4px 0'
+            });
         }
 
         function captureSummary(btn) {
