@@ -3305,8 +3305,17 @@
                     const fileTitle = compareMode
                         ? getComparisonDisplayTitle()
                         : (capHeader.querySelector('div[style*="font-size:20px"], div[style*="font-size:16px"]')?.textContent || 'Summary');
-                    const safeTitle = fileTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
-                    link.download = `${safeTitle || (compareMode ? 'Comparison_Data' : 'Detailed_Breakdown')}_${timestamp}.png`;
+                    const slug = (t) => String(t || '').replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '');
+                    if (compareMode) {
+                        link.download = `${slug(fileTitle) || 'Comparison_Data'}_${timestamp}.png`;
+                    } else {
+                        // Detailed Breakdown: <title>_<filter aktif>_<tanggal as of>, sama polanya dengan capture Summary Performance
+                        const fp = getCurrentFilterParts();
+                        const filterLabel = fp.branch ? fp.branch : (fp.coBranch ? 'Co-Branch ' + fp.coBranch : 'Region Sumatera');
+                        let asOfText = (document.getElementById('header-as-of')?.innerText || '').trim();
+                        if (asOfText === '-') asOfText = '';
+                        link.download = `${slug(fileTitle + ' ' + filterLabel + ' ' + (asOfText || timestamp)) || 'Detailed_Breakdown'}.png`;
+                    }
                     link.href = dataUrl;
                     link.click();
                 })
