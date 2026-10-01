@@ -3081,7 +3081,7 @@
                     comparisonTitle = `Comparison Data ${itemName} Between ${window.lastExportMonth1} And ${window.lastExportMonth2}`;
                 }
             } else {
-                comparisonTitle = 'Detailed Breakdown';
+                comparisonTitle = 'Summary';
                 try {
                     const prod = csvFilesConfig[currentActiveFileIndex].name.split(' / ')[0].trim();
                     if (prod) comparisonTitle += ' ' + prod;
@@ -3291,7 +3291,7 @@
                     const timestamp = new Date().toISOString().slice(0, 10);
                     const fileTitle = compareMode
                         ? getComparisonDisplayTitle()
-                        : (capHeader.querySelector('div[style*="font-size:20px"], div[style*="font-size:16px"]')?.textContent || 'Detailed Breakdown');
+                        : (capHeader.querySelector('div[style*="font-size:20px"], div[style*="font-size:16px"]')?.textContent || 'Summary');
                     const safeTitle = fileTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
                     link.download = `${safeTitle || (compareMode ? 'Comparison_Data' : 'Detailed_Breakdown')}_${timestamp}.png`;
                     link.href = dataUrl;
@@ -3344,7 +3344,7 @@
             }
 
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Detailed Breakdown');
+            XLSX.utils.book_append_sheet(wb, ws, 'Summary');
             const timestamp = new Date().toISOString().slice(0, 10);
             const safe = title.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '');
             XLSX.writeFile(wb, `${safe || 'Detailed_Breakdown'}_${timestamp}.xlsx`);
