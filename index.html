@@ -3324,7 +3324,8 @@
             const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
             let prod = '';
             try { prod = csvFilesConfig[currentActiveFileIndex].name.split(' / ')[0].trim(); } catch (e) {}
-            const title = ('Detailed Breakdown ' + prod).trim();
+            const title = (prod).trim();
+//            const title = ('Detailed Breakdown ' + prod).trim();
 
             // Struktur sama dengan Excel Compare: baris judul, baris kosong, baris header kolom, lalu data
             const headerRow = headerCells.map(th => clean(th.innerText));
