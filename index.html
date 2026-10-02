@@ -3110,13 +3110,13 @@
                 if (f.branch) filterLines.push(lbl('Branch', f.branch));
                 if (!filterLines.length) filterLines.push(val('Region Sumatera'));
                 const asOfTxt = o.showAsOf ? (document.getElementById('header-as-of')?.innerText || '').trim() : '';
-                const metaLeft = (asOfTxt && asOfTxt !== '-') ? lbl('As of', asOfTxt) : '';
-                const metaRight = user ? lbl('Printed by', user) : '';
-                const metaHtml = (metaLeft || metaRight) ? `
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;padding-top:8px;border-top:1px solid ${cLine};font-size:11px;line-height:16px;">
-                        <div style="white-space:nowrap;flex:none;">${metaLeft}</div>
-                        <div style="white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:right;">${metaRight}</div>
-                    </div>` : '';
+                // Meta: dua baris rata kiri-kanan (label di kiri, nilai di kanan) agar tidak pernah terpotong
+                const row = (t, v) => `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;white-space:nowrap;"><span style="color:${cSub};flex:none;">${t}</span><span style="font-weight:600;color:${cAccent};text-align:right;">${esc(v)}</span></div>`;
+                const metaRows = [];
+                if (asOfTxt && asOfTxt !== '-') metaRows.push(row('As of', asOfTxt));
+                if (user) metaRows.push(row('Printed by', user));
+                const metaHtml = metaRows.length ? `
+                    <div style="margin-top:10px;padding-top:8px;border-top:1px solid ${cLine};font-size:11px;line-height:17px;">${metaRows.join('')}</div>` : '';
                 el.style.display = 'block';
                 el.style.padding = '0 0 10px 0';
                 el.innerHTML = `
