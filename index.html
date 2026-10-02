@@ -470,7 +470,7 @@
                 </button>
                 -->
                 <button id="summary-capture-btn" onclick="captureSummary(this)" title="Capture" style="display:none;" class="w-8 h-8 sm:w-auto sm:h-auto sm:px-2 sm:py-1 text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 hover:bg-muamalat-100 dark:hover:bg-muamalat-900/50 rounded transition-colors flex items-center justify-center">
-                     <span class="hidden sm:inline"><i class="fa-solid fa-camera sm:mr-1"></i>Capture</span> 
+                     <i class="fa-solid fa-camera sm:mr-1"></i><span class="hidden sm:inline">Capture</span>
                 </button>
                 <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-muamalat-600 dark:text-muamalat-400 bg-muamalat-50 dark:bg-muamalat-900/30 border border-muamalat-100 dark:border-muamalat-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
                     <option value="">Loading...</option>
@@ -3098,17 +3098,35 @@
             el.style.cssText = `display:flex;align-items:stretch;gap:12px;padding:0 0 12px 0;margin:${o.margin};border-bottom:2px solid ${cLine};`;
 
             const logoHtml = `<img id="${o.logoId}" alt="" style="height:40px;width:40px;object-fit:contain;flex:none;align-self:center;">
-                <div style="width:4px;align-self:stretch;min-height:36px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
+                <div style="width:4px;align-self:stretch;min-height:40px;border-radius:2px;background:${cAccent};flex:none;"></div>`;
 
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
+                // Mobile: baris atas = logo | garis | title + filter; baris bawah = As of (kiri) & Printed by (kanan).
+                // Setiap baris nowrap + line-height tetap agar teks tidak pernah menumpuk di hasil capture.
+                const lbl = (t, v) => `<span style="color:${cSub};">${t}</span> <span style="font-weight:600;color:${cAccent};">${esc(v)}</span>`;
+                const filterLines = [];
+                if (f.coBranch) filterLines.push(lbl('Co-Branch', f.coBranch));
+                if (f.branch) filterLines.push(lbl('Branch', f.branch));
+                if (!filterLines.length) filterLines.push(val('Region Sumatera'));
+                const asOfTxt = o.showAsOf ? (document.getElementById('header-as-of')?.innerText || '').trim() : '';
+                const metaLeft = (asOfTxt && asOfTxt !== '-') ? lbl('As of', asOfTxt) : '';
+                const metaRight = user ? lbl('Printed by', user) : '';
+                const metaHtml = (metaLeft || metaRight) ? `
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;padding-top:8px;border-top:1px solid ${cLine};font-size:11px;line-height:16px;">
+                        <div style="white-space:nowrap;flex:none;">${metaLeft}</div>
+                        <div style="white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:right;">${metaRight}</div>
+                    </div>` : '';
+                el.style.display = 'block';
+                el.style.padding = '0 0 10px 0';
                 el.innerHTML = `
-                    ${logoHtml}
-                    <div style="min-width:0;">
-                        <div style="font-size:16px;line-height:1.25;font-weight:700;color:${cTitle};">${esc(o.title)}</div>
-                        ${subHtml}
-                        ${user ? `<div style="font-size:12px;line-height:1.4;color:${cSub};">Printed by <span style="font-weight:600;color:${cAccent};">${esc(user)}</span></div>` : ''}
-                    </div>`;
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        ${logoHtml}
+                        <div style="min-width:0;flex:1;display:flex;flex-direction:column;justify-content:center;">
+                            <div style="font-size:17px;line-height:22px;font-weight:700;color:${cTitle};">${esc(o.title)}</div>
+                            ${filterLines.map(l => `<div style="font-size:12px;line-height:18px;white-space:nowrap;">${l}</div>`).join('')}
+                        </div>
+                    </div>${metaHtml}`;
             } else {
                 el.innerHTML = `
                     ${logoHtml}
