@@ -3169,6 +3169,16 @@
             });
         }
 
+        // Skala resolusi capture: setinggi mungkin (target 4x agar tajam di HP) tanpa melewati batas canvas browser
+        // (iOS Safari ~16,7 juta piksel; sisi terpanjang dibatasi 16000px).
+        function getCaptureScale(w, h) {
+            const dpr = window.devicePixelRatio || 1;
+            const want = Math.max(3, Math.min(4, dpr * 1.5));
+            const byArea = Math.sqrt(16000000 / Math.max(1, w * h));
+            const bySide = 16000 / Math.max(1, h, w);
+            return Math.max(1.5, Math.min(want, byArea, bySide));
+        }
+
         function captureTable(format) {
             closeCaptureMenu();
 
@@ -3284,7 +3294,7 @@
                     const w = captureWrap.offsetWidth;
                     const h = captureWrap.offsetHeight;
                     const opts = {
-                        pixelRatio: 2,
+                        pixelRatio: getCaptureScale(w, h),
                         backgroundColor: bgColor,
                         cacheBust: true,
                         width: w,
@@ -3297,7 +3307,7 @@
                 });
 
                 const withHtml2Canvas = () => html2canvas(captureWrap, {
-                    scale: 2,
+                    scale: getCaptureScale(captureWrap.offsetWidth, captureWrap.offsetHeight),
                     useCORS: true,
                     backgroundColor: bgColor,
                     logging: false,
@@ -3948,7 +3958,7 @@
             // Utama: html-to-image (dirender langsung oleh browser, posisi teks/ikon sama persis dengan layar).
             const withHtmlToImage = () => getSummaryFontCss().then(fontCss => {
                 const opts = {
-                    pixelRatio: 2,
+                    pixelRatio: getCaptureScale(target.offsetWidth + pad * 2, target.offsetHeight + pad * 2),
                     backgroundColor: bgColor,
                     cacheBust: true,
                     // Lebar gambar = lebar konten di layar + padding kiri & kanan, agar kolom paling kanan tidak terpotong
@@ -3966,7 +3976,7 @@
                 const prevPadding = target.style.padding;
                 target.style.padding = pad + 'px';
                 return html2canvas(target, {
-                    scale: 2, useCORS: true, backgroundColor: bgColor, logging: false,
+                    scale: getCaptureScale(target.offsetWidth + pad * 2, target.offsetHeight + pad * 2), useCORS: true, backgroundColor: bgColor, logging: false,
                     windowWidth: document.documentElement.clientWidth,
                     windowHeight: Math.max(target.scrollHeight + 400, document.documentElement.clientHeight),
                     onclone: (clonedDoc) => {
