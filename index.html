@@ -323,6 +323,24 @@
         }
         .action-btn:hover { transform: scale(1.08); }
 
+        /* ===== MOBILE: tombol Logout disamakan dengan tombol Reset / Compare / Capture ===== */
+        @media (max-width: 639px) {
+            #logout-btn.action-btn {
+                width: 2rem; height: 2rem;            /* w-8 h-8 */
+                border-radius: 0.25rem;               /* rounded */
+                border: none;
+                box-shadow: none;
+                backdrop-filter: none;
+                font-size: 10px;                       /* sama dgn text-[10px] tombol lain */
+                background: #F5F1FB;                  /* muamalat-50 */
+                color: #6441A5;                       /* muamalat-600 */
+                transition: background-color 0.15s ease, color 0.15s ease;
+            }
+            #logout-btn.action-btn:hover { background: #EAE1F7; color: #6441A5; transform: none; } /* muamalat-100 */
+            .dark #logout-btn.action-btn { background: rgba(40,23,69,0.3); color: #9F7ED8; }       /* muamalat-900/30 & 400 */
+            .dark #logout-btn.action-btn:hover { background: rgba(40,23,69,0.5); color: #9F7ED8; }
+        }
+
     </style>
 </head>
 <body class="light h-screen h-[100dvh] flex overflow-hidden relative" oncontextmenu="return false;" onkeydown="return blockShortcuts(event);" ondragstart="return false;">
